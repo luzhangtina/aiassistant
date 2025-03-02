@@ -11,7 +11,8 @@ def next_question():
     
     def generate():
         stream = chat(
-            model='surveymodel',
+            # model='surveymodel',
+            model='llama3.2',
             messages=input,
             stream=True,
         )

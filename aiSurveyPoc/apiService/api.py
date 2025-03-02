@@ -12,7 +12,7 @@ from vosk import Model, KaldiRecognizer
 import re
 
 # Load Vosk Speech Model
-model = Model("/Users/lu/Documents/vosk-model-en-us-0.22")
+model = Model("../../../vosk-model-en-us-0.22")
 
 # FastAPI App
 app = FastAPI()

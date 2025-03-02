@@ -34,7 +34,7 @@ function App() {
     const message = {
       type: "client_init",
       client_id: "client1",
-      name: "Tina",
+      name: "Harshad",
     }
 
     if (init) {
@@ -64,7 +64,7 @@ function App() {
           const message = {
             type: "client_audio_response",
             client_id: "client1",
-            name: "Tina",
+            name: "Harshad",
             audio_data: base64Audio,
           }
 
@@ -400,7 +400,7 @@ function App() {
             onClick={startConversion}
             className="rounded-full bg-transparent px-24 py-20 text-6xl font-semibold text-blue-500 border-0 transition-all hover:bg-blue-100 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-offset-2"
           >
-            Start Survey
+            lets begin
           </button>               
         )}
 
