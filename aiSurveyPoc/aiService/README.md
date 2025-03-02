@@ -1,5 +1,5 @@
 # AI Service
-It provides /conversion API with response stream for other service to consume
+It provides /conversion API with response for other service to consume
 
 ## Conversion API format
 ### Endpoint
@@ -17,6 +17,10 @@ POST
 {
     "input": [
         {
+            "role": "system"
+            "content": {system_prompt}
+        }
+        {
             "role": "user",
             "content": "Hi, let's start. My name is ..."
         }
@@ -27,7 +31,7 @@ POST
 ### Response
 ```
 header:  text/plain
-response body: "Hi, how are you today?"
+response body: {JSON string or plain text based on system prompt}
 ```
 
 ### Dependencies
@@ -41,9 +45,8 @@ response body: "Hi, how are you today?"
 2. Run command **source venv/bin/activate** on macOS/Linux to activate the virtual environment
    or run command **venv\Scripts\activate** on Windows to activate the virtual environment
 3. Run command **pip install -r requirements.txt** to install the requirement packages
-4. Run command **ollama pull llama3.2** to pull llama3.2 model
-5. Run command **python surveyModel.py** to create surveyModel based on llama3.2 model
-6. Run command **ollama list** to verify the surveyModel is created
-7. Run command **python api.py** to start the service
-   The service is running on "http://localhost:5000"
-8. To stop service, run command **CTRL+C**
+4. Run command **ollama pull llama3.2** to pull Llama 3.2 model
+5. Run command **ollama list** to verify Llama 3.2 model exists
+5. Run command **python api.py** to start the service
+   The service is running on "http://localhost:6000"
+6. To stop service, run command **CTRL+C**

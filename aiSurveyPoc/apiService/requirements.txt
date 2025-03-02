@@ -1,0 +1,6 @@
+fastapi==0.115.8
+uvicorn==0.34.0
+httpx==0.28.1
+edge-tts==7.0.0
+pydub==0.25.1
+vosk==0.3.44

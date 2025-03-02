@@ -27,12 +27,14 @@ It provides /ws websocket to accept message from app and send message to app
 ```
 
 ### Message to app
-- Type **server_audio_response** when it is not last audio chunk
+- Type **server_audio_response** when it is not the last survey response from API service
 ```
 {
     "type": "server_audio_response",
     "isFinal": false,
-    "audioBase64": {audio_chunk_in_base64_mp3_format}
+    "audioBase64": {audio_chunk_in_base64_mp3_format},
+    "surveyProgress": {survey progress in percentage. e.g. "50%"},
+    "surveyFinished": false
 }
 ```
 - Type **server_audio_response** when it is last audio chunk
@@ -40,7 +42,9 @@ It provides /ws websocket to accept message from app and send message to app
 {
     "type": "server_audio_response",
     "isFinal": true,
-    "audioBase64": null
+    "audioBase64": null,
+    "surveyProgress": {survey progress in percentage. e.g. "100%"},
+    "surveyFinished": true
 }
 ```
 
@@ -66,6 +70,6 @@ model = Model("path/to/vosk-model-en-us-0.22")
 4. Run command **source venv/bin/activate** on macOS/Linux to activate the virtual environment
    or run command **venv\Scripts\activate** on Windows to activate the virtual environment
 5. Run command **pip install -r requirements.txt** to install the requirement packages
-6. Run command **uvicorn api:app --host localhost --port 5001** to start the api service
-   The service is running on "ws://localhost:5001"
+6. Run command **uvicorn api:app --host localhost --port 6001** to start the api service
+   The service is running on "ws://localhost:6001"
 7. To stop service, run command **CTRL+C**
