@@ -10,14 +10,18 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.expoApp"
+      "bundleIdentifier": "com.anonymous.expoApp",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app requires access to the microphone for voice recognition."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.expoApp"
+      "package": "com.anonymous.expoApp",
+      "permissions": ["RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +39,12 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "@react-native-voice/voice"
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
