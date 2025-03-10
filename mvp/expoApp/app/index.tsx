@@ -1,6 +1,5 @@
 import { StyleSheet, Animated, View, Dimensions } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { LinearGradient } from 'expo-linear-gradient';
 
