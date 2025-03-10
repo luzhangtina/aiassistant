@@ -2,14 +2,40 @@ import { StyleSheet, Animated, View, Dimensions } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ThemedView } from '@/components/ThemedView';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams } from 'expo-router';
+import { Audio } from 'expo-av';
 
 export default function HomeScreen() {
-  // Mock speech level - in a real app, this would come from audio input
+  const { initialResponse } = useLocalSearchParams<{ initialResponse?: string }>();
+  const [audio, setAudio] = useState<Audio.Sound | null>(null);
+
+    // Mock speech level - in a real app, this would come from audio input
   const [speechLevel, setSpeechLevel] = useState(0);
   const ballSize = useRef(new Animated.Value(100)).current;
   const ballOpacity = useRef(new Animated.Value(0.7)).current;
   const gradientRotation = useRef(new Animated.Value(0)).current;
   
+  useEffect(() => {
+    if (initialResponse) {
+      const parsedResponse = JSON.parse(initialResponse);
+      console.log("transcript is: ", parsedResponse.transcript);
+      playInitialAudio(parsedResponse.audioBase64);
+    }
+  }, [initialResponse]);
+
+  const playInitialAudio = async (base64: string) => {
+    try {
+      const audioUri = `data:audio/wav;base64,${base64}`;
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: audioUri }
+      )
+      setAudio(sound);
+      await sound.playAsync();
+    } catch (error) {
+      console.error('Error playing audio:', error);
+    }
+  };
+
   // Convert rotation value to interpolated string for transform
   const spin = gradientRotation.interpolate({
     inputRange: [0, 1],

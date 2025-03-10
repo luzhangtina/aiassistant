@@ -10,6 +10,7 @@ import { Audio } from 'expo-av';
 import { Image, Animated } from 'react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import config from '@/config';
 
 // Prevent auto-hide until we finish animations
 SplashScreen.preventAutoHideAsync();
@@ -21,6 +22,7 @@ export default function RootLayout() {
   });
 
   const [isReady, setIsReady] = useState(false);
+  const [initialResponse, setInitialResponse] = useState<{ audioBase64: string; transcript: string } | null>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -31,7 +33,7 @@ export default function RootLayout() {
         animateSplashLogo();
       });
 
-      checkPermission();
+      checkPermissionAndLoadingInitData();
     }
   }, [loaded]);
 
@@ -41,21 +43,43 @@ export default function RootLayout() {
     }
   }, [isReady]);
 
-  async function checkPermission() {
+  async function checkPermissionAndLoadingInitData() {
     const storedPermission = await AsyncStorage.getItem('microphonePermission');
 
     if (storedPermission == null) {
       const { status } = await Audio.requestPermissionsAsync();
       if (status === 'granted') {
         await AsyncStorage.setItem('microphonePermission', 'granted');
-        setIsReady(true);
+        await fetchInitialResponse();
       } else {
         await AsyncStorage.setItem('microphonePermission', 'denied');
       }
     } else if (storedPermission === 'granted') {
-      setIsReady(true);
+      await fetchInitialResponse();
     } 
   }
+
+  const fetchInitialResponse = async () => {
+    try {
+      const response = await fetch(`${config.apiUrl}/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: config.clientId,
+          name: config.name,
+        }),
+      });
+      const data = await response.json();
+      console.log("fetched init data from server: ", data.transcript)
+      setInitialResponse({
+        audioBase64: data.audioBase64,
+        transcript: data.transcript,
+      });
+      setIsReady(true);
+    } catch (error) {
+      console.error('Error fetching initial response:', error);
+    }
+  };
 
   const animateSplashLogo = () => {
     // Store the animation reference so we can stop it later
@@ -98,7 +122,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       {isReady && 
         <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} initialParams={{ initialResponse: JSON.stringify(initialResponse) }}/>
           <Stack.Screen name="+not-found" options={{ headerShown: false }} />
         </Stack>
       }
