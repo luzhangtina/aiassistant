@@ -1,14 +1,16 @@
-import { StyleSheet, Animated, View, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ThemedView } from '@/components/ThemedView';
 import { useLocalSearchParams } from 'expo-router';
 import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 import WaterBall from '@/components/WaterBall';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function HomeScreen() {
   const { initialResponse } = useLocalSearchParams<{ initialResponse?: string }>();
   const [audio, setAudio] = useState<Audio.Sound | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [transcript, setTranscript] = useState<string | null>(null);
   // Mock speech level - in a real app, this would come from audio input
   const [speechLevel, setSpeechLevel] = useState(0);
   
@@ -45,6 +47,7 @@ export default function HomeScreen() {
     if (initialResponse) {
       const parsedResponse = JSON.parse(initialResponse);
       console.log("transcript is: ", parsedResponse.transcript);
+      setTranscript(parsedResponse.transcript);
       playInitialAudio(parsedResponse.audioBase64);
     }
   }, [initialResponse]);
@@ -64,6 +67,7 @@ export default function HomeScreen() {
         (status) => {
           if (status.isLoaded && status.didJustFinish) {
             setIsAnimating(true);
+            setTranscript(null); // Hide transcript when audio finishes
           }
         }
       );
@@ -84,6 +88,15 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {transcript && (
+        <View style={styles.transcriptContainer}>
+          <ScrollView style={styles.transcriptScroll}>
+            <View style={styles.transcriptWrapper}>
+              <ThemedText>{transcript}</ThemedText>
+            </View>
+        </ScrollView>
+        </View>
+      )}
       <View style={styles.ballContainer}>
         <WaterBall isAnimating={isAnimating} factor={speechLevel} />
       </View>
@@ -97,6 +110,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+  },
+  transcriptContainer: {
+    position: 'absolute',
+    top: '15%',
+    width: '80%',
+    maxHeight: '50%', // Prevents it from taking up too much space
+    alignItems: 'center',
+    padding: 10,
+  },
+  transcriptScroll: {
+    width: '100%',
+  },
+  transcriptWrapper: {
+    width: '100%',
+    alignItems: 'center', // Ensures text is centered inside ScrollView
   },
   ballContainer: {
     flex: 1,
