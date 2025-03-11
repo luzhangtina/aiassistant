@@ -1,7 +1,7 @@
 import base64
 import edge_tts
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 # FastAPI App
@@ -49,3 +49,35 @@ async def init_api(request: InitRequest):
         return response_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+count = 1
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    try:
+        while True:
+            # Receive the audio stream from the client
+            data = await websocket.receive_json()
+            client_id = data['clientId'] 
+            name = data['name']
+            user_audio_data_base64 = data['audioBase64'] 
+            
+            print(f"client_id: {client_id}. name: {name}. user_audio_data_base64 (first 50 bytes): {user_audio_data_base64[:50]}")
+
+            try:
+                response_from_ai = [
+                    f"This is follow up response.",
+                    f"The number is {count}!"
+                ]
+                transcript = f"this is response {count}"
+                count = count + 1
+
+                audio_data = await get_audio_from_edge(response_from_ai)
+                audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                await websocket.send_json({"transcript": transcript, "audioBase64": audio_base64, "isSurveyCompleted": False})
+            except Exception as e:
+                print("Error processing audio:", e)
+    except WebSocketDisconnect:
+        print(f"Client disconnected: {websocket.client}")
