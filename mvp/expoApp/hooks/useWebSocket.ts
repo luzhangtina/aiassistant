@@ -4,7 +4,7 @@ const sockets: Record<string, WebSocket> = {}; // Stores WebSockets per URL
 const socketStatus: Record<string, "connecting" | "connected" | "disconnected"> = {}; // Store connection status per URL
 
 export function useWebSocket(url: string, onMessage: (event: WebSocketMessageEvent) => void) {
-    const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">( socketStatus[url] || "connecting" );
+  const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">( socketStatus[url] || "connecting" );
 
   // Setup the WebSocket connection
   useEffect(() => {

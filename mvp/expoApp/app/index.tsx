@@ -5,6 +5,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 import WaterBall from '@/components/WaterBall';
 import TranscriptDisplay from '@/components/TranscriptDisplay';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import config from '@/config';
 
 export default function HomeScreen() {
   const { initialResponse } = useLocalSearchParams<{ initialResponse?: string }>();
@@ -13,6 +15,24 @@ export default function HomeScreen() {
   const [transcript, setTranscript] = useState<string | null>(null);
   // Mock speech level - in a real app, this would come from audio input
   const [speechLevel, setSpeechLevel] = useState(0);
+
+  const handleSocketMessage = (event: WebSocketMessageEvent) => {
+    const data = JSON.parse(event.data);
+    
+    if (data.transcript) {
+      setTranscript(data.transcript);
+    }
+    
+    if (data.audioBase64) {
+      // playAudio(data.audioBase64);
+    }
+
+    if (data.isSurveyCompleted) {
+      // do clean up
+    }
+  };
+
+  const { sendMessage, closeConnection } = useWebSocket(config.wsUrl, handleSocketMessage);
   
   useEffect(() => {
     const setupAudio = async () => {
@@ -36,10 +56,13 @@ export default function HomeScreen() {
     
     // Cleanup function
     return () => {
+      console.log("Unmounted the screen");
       if (audio) {
         console.log("Unloading audio on component cleanup");
         audio.unloadAsync();
       }
+  
+      closeConnection();
     };
   }, []);
 
