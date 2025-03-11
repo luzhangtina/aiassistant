@@ -4,7 +4,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useLocalSearchParams } from 'expo-router';
 import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 import WaterBall from '@/components/WaterBall';
-import { ThemedText } from '@/components/ThemedText';
+import TranscriptDisplay from '@/components/TranscriptDisplay';
 
 export default function HomeScreen() {
   const { initialResponse } = useLocalSearchParams<{ initialResponse?: string }>();
@@ -64,7 +64,7 @@ export default function HomeScreen() {
       const { sound } = await Audio.Sound.createAsync(
         { uri: audioUri },
         { shouldPlay: true },
-        (status) => {
+        ( status ) => {
           if (status.isLoaded && status.didJustFinish) {
             setIsAnimating(true);
             setTranscript(null); // Hide transcript when audio finishes
@@ -88,15 +88,9 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {transcript && (
-        <View style={styles.transcriptContainer}>
-          <ScrollView style={styles.transcriptScroll}>
-            <View style={styles.transcriptWrapper}>
-              <ThemedText>{transcript}</ThemedText>
-            </View>
-        </ScrollView>
-        </View>
-      )}
+      <View style={styles.transcriptContainer}>
+        <TranscriptDisplay transcript={transcript} />
+      </View>
       <View style={styles.ballContainer}>
         <WaterBall isAnimating={isAnimating} factor={speechLevel} />
       </View>
@@ -118,13 +112,6 @@ const styles = StyleSheet.create({
     maxHeight: '50%', // Prevents it from taking up too much space
     alignItems: 'center',
     padding: 10,
-  },
-  transcriptScroll: {
-    width: '100%',
-  },
-  transcriptWrapper: {
-    width: '100%',
-    alignItems: 'center', // Ensures text is centered inside ScrollView
   },
   ballContainer: {
     flex: 1,
