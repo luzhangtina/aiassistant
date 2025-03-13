@@ -21,7 +21,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.expoApp",
-      "permissions": ["RECORD_AUDIO"]
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -44,7 +46,9 @@
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
         }
-      ]
+      ],
+      "@react-native-voice/voice",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true

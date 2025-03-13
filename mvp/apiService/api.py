@@ -50,12 +50,12 @@ async def init_api(request: InitRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-count = 1
-
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    print(f"Client connecting: {websocket.client}")
     await websocket.accept()
-
+    print(f"Client connected: {websocket.client}")
+    count = 1
     try:
         while True:
             # Receive the audio stream from the client

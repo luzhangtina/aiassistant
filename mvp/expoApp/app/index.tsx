@@ -2,7 +2,14 @@ import { StyleSheet, ScrollView, View } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ThemedView } from '@/components/ThemedView';
 import { useLocalSearchParams } from 'expo-router';
-import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
+import { Audio } from 'expo-av';
+import Voice, {
+  type SpeechResultsEvent,
+  type SpeechErrorEvent,
+} from '@react-native-voice/voice';
+import * as FileSystem from 'expo-file-system';
+import { useAudioRecorder, RecordingPresets } from 'expo-audio';
+
 import WaterBall from '@/components/WaterBall';
 import TranscriptDisplay from '@/components/TranscriptDisplay';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -14,7 +21,27 @@ export default function HomeScreen() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
   // Mock speech level - in a real app, this would come from audio input
+  const [recordingStatus, setRecordingStatus] = useState<"idle" | "init" | "stop" | "end">("idle");
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [speechLevel, setSpeechLevel] = useState(0);
+
+  const onSpeechEnd = (e: any) => {
+    console.log('Voice recognizition detected speech end.');
+    setRecordingStatus("stop");
+  };
+
+  const onSpeechError = (e: SpeechErrorEvent) => {
+    console.log('onSpeechError: ', e);
+  };
+
+  const onSpeechResults = (e: SpeechResultsEvent) => {
+    console.log( e.value && e.value?.length > 0 ? e.value : []);
+  };
+
+  const onSpeechVolumeChanged = (e: any) => {
+    // console.log('onSpeechVolumeChanged: ', e);
+    // console.log(e.value);
+  };
 
   const handleSocketMessage = (event: WebSocketMessageEvent) => {
     const data = JSON.parse(event.data);
@@ -24,36 +51,17 @@ export default function HomeScreen() {
     }
     
     if (data.audioBase64) {
-      // playAudio(data.audioBase64);
+      playInitialAudio(data.audioBase64);
     }
 
     if (data.isSurveyCompleted) {
-      // do clean up
+      setRecordingStatus("end");
     }
   };
 
   const { sendMessage, closeConnection } = useWebSocket(config.wsUrl, handleSocketMessage);
   
-  useEffect(() => {
-    const setupAudio = async () => {
-      try {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-          playsInSilentModeIOS: true,
-          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-          shouldDuckAndroid: true,
-          staysActiveInBackground: true,
-          playThroughEarpieceAndroid: false
-        });
-        console.log("Audio mode set successfully");
-      } catch (error) {
-        console.error('Error setting audio mode:', error);
-      }
-    };
-    
-    setupAudio();
-    
+  useEffect(() => {  
     // Cleanup function
     return () => {
       console.log("Unmounted the screen");
@@ -62,6 +70,7 @@ export default function HomeScreen() {
         audio.unloadAsync();
       }
   
+      cleanUpRecording();
       closeConnection();
     };
   }, []);
@@ -74,6 +83,16 @@ export default function HomeScreen() {
       playInitialAudio(parsedResponse.audioBase64);
     }
   }, [initialResponse]);
+
+  useEffect(() => {
+    if (recordingStatus === "init") {
+      startRecording();
+    } else if (recordingStatus === "stop") {
+      stopRecording();
+    } else if (recordingStatus === "end") {
+      cleanUpRecording();
+    }
+  }, [recordingStatus]);
 
   const playInitialAudio = async (base64: string) => {
     try {
@@ -89,8 +108,8 @@ export default function HomeScreen() {
         { shouldPlay: true },
         ( status ) => {
           if (status.isLoaded && status.didJustFinish) {
-            setIsAnimating(true);
             setTranscript(null); // Hide transcript when audio finishes
+            setRecordingStatus("init");
           }
         }
       );
@@ -100,14 +119,52 @@ export default function HomeScreen() {
     }
   };
 
-  // Simulate changing speech levels for testing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newLevel = Math.random(); // Mocking speech level
-      setSpeechLevel(newLevel);
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+  const startRecording = async () => {
+    console.log('recording started');
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechError = onSpeechError;
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechVolumeChanged = onSpeechVolumeChanged;
+
+    await Voice.start('en-US');
+    
+    await audioRecorder.prepareToRecordAsync();
+    audioRecorder.record();
+  };
+
+  const stopRecording = async () => {   
+    console.log('Stopping recording..');
+    await Voice.stop();
+    audioRecorder.stop();
+
+    await processSpeechData();
+  };
+
+  const cleanUpRecording = async () => {
+    Voice.destroy().then(Voice.removeAllListeners);
+    audioRecorder.stop();
+  }
+
+  const processSpeechData = async () => {
+    if (!audioRecorder.uri) {
+      return;
+    }
+    
+    console.log('Recorded uri is ', audioRecorder.uri);
+
+    // Read the file as base64
+    const base64Audio = await FileSystem.readAsStringAsync(audioRecorder.uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const message = {
+      clientId: config.clientId,
+      name: config.name,
+      audioBase64: base64Audio
+    }
+
+    sendMessage(message); 
+  };
 
   return (
     <ThemedView style={styles.container}>

@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState, useRef } from 'react';
 import 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Audio } from 'expo-av';
+import { AudioModule } from 'expo-audio';
 import { Image, Animated } from 'react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -44,15 +44,15 @@ export default function RootLayout() {
   }, [isReady]);
 
   async function checkPermissionAndLoadingInitData() {
-    const storedPermission = await AsyncStorage.getItem('microphonePermission');
+    const storedPermission = await AsyncStorage.getItem('recordingPermission');
 
     if (storedPermission == null) {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status === 'granted') {
-        await AsyncStorage.setItem('microphonePermission', 'granted');
+      const status = await AudioModule.requestRecordingPermissionsAsync();
+      if (status.granted) {
+        await AsyncStorage.setItem('recordingPermission', 'granted');
         await fetchInitialResponse();
       } else {
-        await AsyncStorage.setItem('microphonePermission', 'denied');
+        await AsyncStorage.setItem('recordingPermission', 'denied');
       }
     } else if (storedPermission === 'granted') {
       await fetchInitialResponse();
