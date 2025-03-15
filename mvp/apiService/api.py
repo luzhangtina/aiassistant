@@ -10,6 +10,73 @@ app = FastAPI()
 # In-memory storage for clients' context
 client_context = {}
 
+survey_questions = [
+    {
+        'number': 1,
+        'question': "How effectively does the board shape and oversee the organization’s long-term strategy?",
+        'objective': {
+            'goal': "Assess the board’s role in guiding, challenging, and supporting strategy while ensuring long-term success.",
+            'keypoints': [
+                "Does the board allocate sufficient time to long-term strategic discussions rather than just reviewing management updates?",
+                "How effectively does the board challenge and refine management’s strategic proposals?",
+                "Does the board have a clear view of external trends, risks, and opportunities shaping strategy?"
+            ]
+        }
+    },
+    {
+        'number': 2,
+        'question': "How well does the board oversee and manage risk, balancing resilience with opportunity?",
+        'objective': {
+            'goal': "Evaluate how the board identifies, monitors, and mitigates risks, both financial and non-financial.",
+            'keypoints': [
+                "Is risk proactively embedded in board decision-making, or treated as a compliance exercise?",
+                "Does the board ensure the organization is prepared for emerging risks, including cyber, ESG, regulatory, and geopolitical risks?",
+                "How well does the board review and align the organization’s risk appetite with its strategic goals?"
+            ]
+        }
+    },
+    {
+        'number': 3,
+        'question': "Does the board have the right mix of skills, diversity of thought, and industry knowledge to meet the organization’s needs?",
+        'objective': {
+            'goal': "Assess whether the board’s membership, governance culture, and internal dynamics support strong decision-making.",
+            'keypoints': [
+                "Are board discussions open, constructive, and challenging where necessary?",
+                "How effective is the board’s succession planning and director onboarding in maintaining long-term effectiveness?"
+            ]
+        }
+    },
+    {
+        'number': 4,
+        'question': "How well does the board monitor and support the performance of the CEO?",
+        'objective': {
+            'goal': "Evaluate the board’s effectiveness in overseeing leadership, talent development, and CEO succession.",
+            'keypoints': [
+                "Does the board provide the right level of challenge and support to the executive team?",
+                "How effectively does the board assess and guide CEO performance and leadership development?",
+                "Is there a structured, forward-looking approach to CEO and executive succession planning?"
+            ]
+        }
+    },
+    {
+        'number': 5,
+        'question': "How effectively does the Chair lead the board and get the best from all directors?",
+        'objective': {
+            'goal': "Assess the Chair’s role in facilitating effective board discussions, decision-making, and governance culture.",
+            'keypoints': [
+                "Does the Chair ensure board meetings are well-structured, focused, and drive meaningful outcomes?",
+                "How effectively does the Chair balance participation, challenge, and collaboration among board members?",
+                "Is the Chair proactively developing the board’s effectiveness through feedback, succession planning, and director engagement?"
+            ]
+        }
+    }
+]
+
+questions_list = [
+    {'number': item['number'], 'question': item['question']}
+    for item in survey_questions
+]
+
 async def get_audio_from_edge(text_to_speak):
     print(f"text_to_speak: {text_to_speak}")
 
@@ -36,20 +103,14 @@ async def init_api(request: InitRequest):
         client_context[request.clientId] = {
             'history': [],
             'context': {
-                'number_of_total_questions': 8,
+                'number_of_total_questions': len(questions_list),
                 'number_of_current_questions': 1,
                 'progress': 0,
-                'current_question': "With regard to the Chair's leadership, which areas are currently strengths?",
-                'questions': [
-                    {
-                        'number': 1,
-                        'question': "With regard to the Chair's leadership, which areas are currently strengths?"
-                    },
-                    {
-                        'number': 2,
-                        'question': "Question 2?"
-                    },
-                ]
+                'current_question': next(
+                    (q['question'] for q in questions_list if q['number'] == 1),
+                    "Question not found"
+                ),
+                'questions': questions_list
             }
         }
 
