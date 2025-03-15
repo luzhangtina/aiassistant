@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     StyleSheet, 
     View, 
@@ -15,10 +15,12 @@ interface ProgressBarProps {
   current: number;
   total: number;
   percentage: number;
+  viewQuestion: boolean;
+  onPress: () => void;
 }
 
 // Progress Bar Component
-const ProgressBar: React.FC<ProgressBarProps> = ({ current, total, percentage }) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({ current, total, percentage, viewQuestion, onPress }) => {
   const { width } = useWindowDimensions();
   const isNarrowScreen = width < 350;
   
@@ -26,6 +28,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, total, percentage })
   const dots = [];
   // Reduce number of dots on narrow screens
   const visibleDots = isNarrowScreen ? Math.min(5, total) : total;
+  const title = viewQuestion ? "View All" : "Hide";
   
   for (let i = 0; i < visibleDots; i++) {
     dots.push(
@@ -45,8 +48,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ current, total, percentage })
         <Text style={[styles.progressText, isNarrowScreen && { fontSize: 14 }]}>
           Question {current} of {total}
         </Text>
-        <TouchableOpacity>
-          <Text style={[styles.viewAllText, isNarrowScreen && { fontSize: 14 }]}>View All</Text>
+        <TouchableOpacity onPress={onPress}>
+          <Text style={[styles.viewAllText, isNarrowScreen && { fontSize: 14 }]}>{title}</Text>
         </TouchableOpacity>
       </View>
       

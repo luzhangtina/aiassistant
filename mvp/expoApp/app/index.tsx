@@ -15,6 +15,7 @@ import ProgressBar from "@/components/ProgressBar";
 import WaveformVisualization from "@/components/WaveformVisualization";
 import QuestionDisplay from "@/components/QuestionDisplay";
 import FooterActions from '@/components/FooterActions';
+import QuestionListScrollView from "@/components/QuestionListScrollView"
 
 import { QuestionList } from '@/types/SharedTypes';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -39,6 +40,7 @@ const SurveyScreen: React.FC = () => {
   const [audio, setAudio] = useState<Audio.Sound | null>(null);
   const [canPressRecordButton, setCanPressRecordButton] = useState(false);
   const [isRecordButtonPressed, setIsRecordButtonPressed] = useState(false);
+  const [viewQuestion, setSetViewQuestion] = useState(true);
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
   const handleSocketMessage = (event: WebSocketMessageEvent) => {
@@ -134,6 +136,10 @@ const SurveyScreen: React.FC = () => {
     }
   };
 
+  const toggleViewQuestion = () => {
+    setSetViewQuestion((prev) => (!prev));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -143,13 +149,24 @@ const SurveyScreen: React.FC = () => {
           current={dynamicQuestionData.currentNumberOfQuestion}
           total={staticQuestionData.numberOfTotalQuestions}
           percentage={dynamicQuestionData.progress}
+          viewQuestion={viewQuestion}
+          onPress={toggleViewQuestion}
         />
       )}
       
       <View style={styles.contentContainer}>
-        <WaveformVisualization />
-        {dynamicQuestionData && (
-          <QuestionDisplay question={dynamicQuestionData.currentQuestion}/>
+        {viewQuestion && (
+          <>
+            <WaveformVisualization />
+            {dynamicQuestionData && (
+              <QuestionDisplay question={dynamicQuestionData.currentQuestion} />
+            )}
+          </>
+        )}
+        {!viewQuestion && dynamicQuestionData && staticQuestionData && (
+          <QuestionListScrollView
+            currentNumberOfQuestion={dynamicQuestionData.currentNumberOfQuestion}
+            questions={staticQuestionData?.questions}/>
         )}
         <FooterActions 
           enableRecording={canPressRecordButton} 
