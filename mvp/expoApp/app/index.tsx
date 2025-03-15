@@ -19,7 +19,6 @@ import FooterActions from '@/components/FooterActions';
 import { QuestionList } from '@/types/SharedTypes';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import config from '@/config';
-import Recording from '@/components/Recording';
 
 type StaticQuestionData = {
   numberOfTotalQuestions: number;
@@ -139,11 +138,19 @@ const SurveyScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      <ProgressBar current={dynamicQuestionData?.currentNumberOfQuestion} total={staticQuestionData?.numberOfTotalQuestions} percentage={dynamicQuestionData?.progress} />
+      {dynamicQuestionData && staticQuestionData && (
+        <ProgressBar
+          current={dynamicQuestionData.currentNumberOfQuestion}
+          total={staticQuestionData.numberOfTotalQuestions}
+          percentage={dynamicQuestionData.progress}
+        />
+      )}
       
       <View style={styles.contentContainer}>
         <WaveformVisualization />
-        <QuestionDisplay question={dynamicQuestionData?.currentQuestion}/>
+        {dynamicQuestionData && (
+          <QuestionDisplay question={dynamicQuestionData.currentQuestion}/>
+        )}
         <FooterActions 
           enableRecording={canPressRecordButton} 
           onToggleRecording={toggleRecording} 
