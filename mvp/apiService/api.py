@@ -10,9 +10,7 @@ app = FastAPI()
 # In-memory storage for clients' context
 client_context = {}
 
-async def get_audio_from_edge(sentence_pair):
-    text_to_speak = " ".join(sentence_pair)
-    
+async def get_audio_from_edge(text_to_speak):
     print(f"text_to_speak: {text_to_speak}")
 
     communicate = edge_tts.Communicate(text_to_speak, voice='en-US-AvaMultilingualNeural')
@@ -35,15 +33,36 @@ class InitRequest(BaseModel):
 @app.post("/api/init")
 async def init_api(request: InitRequest):
     try:
-        client_context[request.clientId] = {'history': []}
-        response_from_ai = [
-            f"Hi {request.name}.",
-            f"Hope you are doing well! let's start the survey!"
-        ]
+        client_context[request.clientId] = {
+            'history': [],
+            'context': {
+                'number_of_total_questions': 8,
+                'number_of_current_questions': 1,
+                'progress': 0,
+                'current_question': "With regard to the Chair's leadership, which areas are currently strengths?",
+                'questions': [
+                    {
+                        'number': 1,
+                        'question': "With regard to the Chair's leadership, which areas are currently strengths?"
+                    },
+                    {
+                        'number': 2,
+                        'question': "Question 2?"
+                    },
+                ]
+            }
+        }
+
+        user_context = client_context[request.clientId]['context']
+        response_from_ai = f"Hi {request.name}. Hope you are doing well! let's start the survey! Question {user_context['number_of_current_questions']}: {user_context['current_question']}"
         audio_data = await get_audio_from_edge(response_from_ai)
         audio_base64 = base64.b64encode(audio_data).decode('utf-8')
         response_data = {
-            "transcript": f"Hello {request.name}, welcome!",
+            "numberOfTotalQuestions": user_context['number_of_total_questions'],
+            "questions": user_context['questions'],
+            "currentNumberOfQuestion": user_context['number_of_current_questions'],
+            "progress": user_context['progress'],
+            "currentQuestion": user_context['current_question'],
             "audioBase64": audio_base64
         }
         return response_data
@@ -67,10 +86,7 @@ async def websocket_endpoint(websocket: WebSocket):
             print(f"client_id: {client_id}. name: {name}. user_audio_data_base64 (first 50 bytes): {user_audio_data_base64[:50]}")
 
             try:
-                response_from_ai = [
-                    f"This is follow up response.",
-                    f"The number is {count}!"
-                ]
+                response_from_ai = f"This is follow up response. The number is {count}!"
                 transcript = f"this is response {count}"
                 count = count + 1
 
