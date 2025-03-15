@@ -19,6 +19,7 @@ import FooterActions from '@/components/FooterActions';
 import { QuestionList } from '@/types/SharedTypes';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import config from '@/config';
+import Recording from '@/components/Recording';
 
 type StaticQuestionData = {
   numberOfTotalQuestions: number;
@@ -37,7 +38,8 @@ const SurveyScreen: React.FC = () => {
   const [staticQuestionData, setStaticQuestionData] = useState<StaticQuestionData | null>(null);
   const [dynamicQuestionData, setDynamicQuestionData] = useState<DynamicQuestionData | null>(null);
   const [audio, setAudio] = useState<Audio.Sound | null>(null);
-  const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
+  const [canPressRecordButton, setCanPressRecordButton] = useState(false);
+  const [isRecordButtonPressed, setIsRecordButtonPressed] = useState(false);
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
   const handleSocketMessage = (event: WebSocketMessageEvent) => {
@@ -64,7 +66,8 @@ const SurveyScreen: React.FC = () => {
         { shouldPlay: true },
         ( status ) => {
           if (status.isLoaded && status.didJustFinish) {
-            setIsRecordingEnabled(true);
+            setIsRecordButtonPressed(false);
+            setCanPressRecordButton(true);
           }
         }
       );
@@ -122,6 +125,16 @@ const SurveyScreen: React.FC = () => {
     }
   }, [initialResponse]);
 
+  const toggleRecording = () => {
+    if (isRecordButtonPressed) {
+      stopRecording(); // Stop if already recording
+      setCanPressRecordButton(false);
+    } else {
+      setIsRecordButtonPressed(true);
+      startRecording(); // Start if not recording
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -131,7 +144,10 @@ const SurveyScreen: React.FC = () => {
       <View style={styles.contentContainer}>
         <WaveformVisualization />
         <QuestionDisplay question={dynamicQuestionData?.currentQuestion}/>
-        <FooterActions />
+        <FooterActions 
+          enableRecording={canPressRecordButton} 
+          onToggleRecording={toggleRecording} 
+        />
       </View>
     </SafeAreaView>
   );

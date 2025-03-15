@@ -9,8 +9,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import MicrophoneButton from '@/components/MicrophoneButton';
 
+interface FooterActionsProps {
+    enableRecording: boolean;
+    onToggleRecording: () => void;
+}
+
 // Footer Actions Component
-const FooterActions: React.FC = () => {
+const FooterActions: React.FC<FooterActionsProps> = ({ enableRecording, onToggleRecording }) => {
   const { width } = useWindowDimensions();
   // Make buttons proportional to screen width
   const buttonSize = Math.min(50, Math.max(36, width * 0.1));
@@ -32,7 +37,10 @@ const FooterActions: React.FC = () => {
         />
       </TouchableOpacity>
       
-      <MicrophoneButton />
+      <MicrophoneButton 
+        isEnabled={enableRecording}
+        onPress={onToggleRecording}
+      />
       
       <TouchableOpacity style={[
         styles.footerButton, 
