@@ -10,7 +10,10 @@ import { AudioModule } from 'expo-audio';
 import { Image, Animated } from 'react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+
 import config from '@/config';
+
+import { InitialResponse } from '@/types/SharedTypes';
 
 // Prevent auto-hide until we finish animations
 SplashScreen.preventAutoHideAsync();
@@ -22,7 +25,7 @@ export default function RootLayout() {
   });
 
   const [isReady, setIsReady] = useState(false);
-  const [initialResponse, setInitialResponse] = useState<{ audioBase64: string; transcript: string } | null>(null);
+  const [initialResponse, setInitialResponse] = useState<InitialResponse | null>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -70,10 +73,14 @@ export default function RootLayout() {
         }),
       });
       const data = await response.json();
-      console.log("fetched init data from server: ", data.transcript)
+      console.log("fetched init data from server: ", data.currentQuestion)
       setInitialResponse({
-        audioBase64: data.audioBase64,
-        transcript: data.transcript,
+        numberOfTotalQuestions: data.numberOfTotalQuestions,
+        questions: data.questions,
+        currentNumberOfQuestion: data.currentNumberOfQuestion,
+        progress: data.progress,
+        currentQuestion: data.currentQuestion,
+        audioBase64: data.audioBase64
       });
       setIsReady(true);
     } catch (error) {

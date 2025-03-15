@@ -12,13 +12,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 // Type definitions
 interface ProgressBarProps {
-  current: number;
-  total: number;
-  percentage: number;
+  current: number | undefined;
+  total: number | undefined;
+  percentage: number | undefined;
 }
 
 // Progress Bar Component
 const ProgressBar: React.FC<ProgressBarProps> = ({ current, total, percentage }) => {
+  if (current === undefined || total === undefined || percentage === undefined) {
+    return null;
+  }
+  
   const { width } = useWindowDimensions();
   const isNarrowScreen = width < 350;
   

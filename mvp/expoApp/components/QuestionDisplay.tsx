@@ -7,10 +7,12 @@ import {
 } from 'react-native';
 
 interface QuestionDisplayProps {
-  question: string;
+  question: string | undefined;
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ question }) => {
+  if (question === undefined) return null;
+  
   const { width, height } = useWindowDimensions();
   // Adjust font size based on screen dimensions for better readability
   const dynamicFontSize = Math.min(24, Math.max(18, width * 0.06));
