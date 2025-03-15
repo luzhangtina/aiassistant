@@ -39,8 +39,7 @@ export default function HomeScreen() {
   };
 
   const onSpeechVolumeChanged = (e: any) => {
-    // console.log('onSpeechVolumeChanged: ', e);
-    // console.log(e.value);
+    setSpeechLevel(e.value);
   };
 
   const handleSocketMessage = (event: WebSocketMessageEvent) => {
