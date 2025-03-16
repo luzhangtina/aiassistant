@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -16,6 +16,14 @@ const MicrophoneButton: React.FC<MicrophoneButtonProps> = ({ isEnabled, onPress 
   const { width } = useWindowDimensions();
   const buttonSize = Math.min(60, Math.max(40, width * 0.13));
   const rippleSize = buttonSize * 1.4;
+  const buttonColor = isEnabled ? '#9370DB' : '#90EE90';
+  const rippleColor = isEnabled ? '#9370DB' : '#90EE90';
+  const [startAnimation, setStartAnimation] = useState(false)
+
+  const handlePress = () => {
+      setStartAnimation((prev) => (!prev));
+      onPress();
+  };
 
   return (
     <View style={styles.microphoneContainer}>
@@ -27,18 +35,19 @@ const MicrophoneButton: React.FC<MicrophoneButtonProps> = ({ isEnabled, onPress 
                     height: rippleSize,
                     borderRadius: rippleSize / 2,
                     opacity: isEnabled ? 1 : 0.5, // Dim the button when it's disabled
+                    backgroundColor: rippleColor
                 }
             ]}
-            onPress={isEnabled ? onPress : undefined} // Only trigger onPress if enabled
+            onPress={isEnabled ? handlePress : undefined} // Only trigger onPress if enabled
             disabled={!isEnabled} // Disable interaction if not enabled
         >
         <View
           style={[
             styles.microphoneButton,
-            { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2 },
+            { width: buttonSize, height: buttonSize, borderRadius: buttonSize / 2, backgroundColor: buttonColor},
           ]}
         >
-          <MaterialIcons name="mic" size={buttonSize * 0.48} color="#FFF" />
+          <MaterialIcons name="mic" size={buttonSize * 0.48} color="#FFF"/>
         </View>
       </TouchableOpacity>
     </View>
@@ -51,12 +60,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   microphoneRipple: {
-    backgroundColor: 'rgba(144, 238, 144, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   microphoneButton: {
-    backgroundColor: '#90EE90',
     alignItems: 'center',
     justifyContent: 'center',
   },
