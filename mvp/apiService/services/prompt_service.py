@@ -1,7 +1,7 @@
 def create_system_prompt(init, summary, client_name, question_text, description, chat_history, magic_ending_word):
     if not summary:
         role_prompt = f"You are a professional consultant guiding user {client_name} through a 3 minutes conversation. The conversation revolves around the main topic of {question_text}."
-        question_prompt = f"Please greet user {client_name} first, then ask the first question related to this topic."
+        question_prompt = f"Please greet user {client_name} first, then ask the main question: {question_text}"
         goal_prompt = f"The insight you need to gather from the main topic is to {description}."
         rule_prompt = f"""
             When responding to the user's answer, please follow these rules strictly:
@@ -18,7 +18,7 @@ def create_system_prompt(init, summary, client_name, question_text, description,
             4. Keep your conversion within ***5 rounds*** no matter if enought insights is collected or not. When ending the conversion, reply with "{magic_ending_word}".
         """
         if not init:
-            question_prompt = f"Please ask user {client_name} the following main question: {question_text}"
+            question_prompt = f"Do not greet user, please start directly by asking user the main question: {question_text}"
 
         system_prompt = f"""
             {role_prompt}
@@ -28,11 +28,11 @@ def create_system_prompt(init, summary, client_name, question_text, description,
         """
     else:
         system_prompt = f"""
-            You are summarizing the completed conversation for user {client_name}. The conversation history is as follows:
-            {chat_history}.
+            Your role is to summarize the completed conversation which user {client_name} provided. 
             
-            Provide a concise summary of the responses and thank {client_name} for completing the survey. 
-            End with a friendly farewell: "Thank you for participating in the survey. Goodbye for now!"
+            Provide a concise summary of the responses and thank {client_name} for taking the time and having the conversion. 
+
+            Do not ask any question in your response!
         """
     
     return system_prompt

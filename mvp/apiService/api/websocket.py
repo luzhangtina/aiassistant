@@ -35,23 +35,37 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 user_responses = [
                     "I believe the board plays a crucial role in shaping and overseeing our long-term strategy. They dedicate time during quarterly meetings specifically to strategic discussions, going beyond routine performance reviews. This ensures that we’re not just reacting to short-term results but actively planning for sustainable growth. The board consistently challenges management’s proposals by asking thought-provoking questions and encouraging alternative perspectives. For example, during our recent expansion planning, they pushed us to consider emerging market risks and diversify our approach, leading to a more resilient strategy. Additionally, they stay informed on external factors — from economic trends to industry disruptions — through regular briefings from experts. This proactive approach helps the organization stay ahead of potential risks and seize new opportunities. Overall, their involvement ensures our strategy remains forward-thinking, adaptable, and aligned with our mission.",
-                    "The board takes a proactive approach to risk management, integrating risk considerations directly into strategic discussions rather than treating it as a separate compliance task. They regularly review a comprehensive risk dashboard that covers financial metrics, operational risks, and emerging challenges like cybersecurity, ESG factors, and regulatory changes. Each major strategic decision includes an assessment of potential risks and opportunities, ensuring the organization balances resilience with growth. Additionally, the board periodically invites external experts to provide insights on evolving geopolitical risks and technological threats, helping them stay ahead of potential disruptions. The organization’s risk appetite is clearly defined and revisited annually to ensure it remains aligned with long-term strategic goals, fostering a culture that supports innovation while maintaining robust safeguards."
+                    "The board takes a proactive approach to risk management, integrating risk considerations directly into strategic discussions rather than treating it as a separate compliance task. They regularly review a comprehensive risk dashboard that covers financial metrics, operational risks, and emerging challenges like cybersecurity, ESG factors, and regulatory changes. Each major strategic decision includes an assessment of potential risks and opportunities, ensuring the organization balances resilience with growth. Additionally, the board periodically invites external experts to provide insights on evolving geopolitical risks and technological threats, helping them stay ahead of potential disruptions. The organization’s risk appetite is clearly defined and revisited annually to ensure it remains aligned with long-term strategic goals, fostering a culture that supports innovation while maintaining robust safeguards.",
+                    "To effectively assess whether the board has the right mix of skills, diversity of thought, and industry knowledge, the board should be composed of individuals with a broad range of expertise, experience, and backgrounds. The ideal board should encompass a blend of technical skills, strategic vision, and industry-specific knowledge that align with the organization’s goals and challenges. In terms of governance culture, board discussions must be open and constructive. Board members should feel empowered to voice differing opinions and challenge assumptions, ensuring that decision-making is robust and well-informed. The diversity of thought within the board is essential for generating innovative ideas and preventing groupthink. Furthermore, the effectiveness of succession planning and director onboarding is crucial for maintaining long-term board effectiveness. A well-thought-out succession plan helps ensure that the board has a continuous pipeline of talent with the necessary skills and experience. Onboarding programs should be comprehensive, helping new directors quickly get up to speed with the organization’s culture, strategy, and key issues. In conclusion, if the board is diverse in skills, experience, and perspective, and has effective processes in place for governance, succession, and onboarding, it will be well-equipped to meet the organization’s needs and make informed decisions.",
+                    "The board’s role in monitoring and supporting the performance of the CEO is critical to ensuring strong leadership and the overall success of the organization. To assess the board's effectiveness, it is important to look at how well they oversee leadership, talent development, and CEO succession. A high-performing board ensures that the CEO is held accountable for the organization’s performance and strategic direction, while also providing the necessary support for the CEO to lead effectively. The board should provide both challenge and support to the executive team, striking a balance between pushing for high performance and offering the resources and encouragement needed for success. This can include offering constructive feedback, addressing any potential gaps in leadership, and guiding the CEO in making strategic decisions. Effective CEO performance assessment should be ongoing and comprehensive, including both short-term results and long-term leadership development. The board should have a structured approach to evaluating CEO performance, using clear metrics and regular reviews to ensure that the CEO is meeting organizational goals and expectations. In addition, CEO and executive succession planning should be a forward-looking, proactive process. The board should have a structured plan for leadership continuity, ensuring that there is a pipeline of qualified candidates to take on the CEO role and other key leadership positions when needed. A clear succession plan helps mitigate risks associated with leadership transitions and ensures the organization remains stable and focused on its long-term objectives. In summary, an effective board supports the CEO by providing the right level of challenge and support, regularly assessing CEO performance, and ensuring strong succession planning to maintain leadership continuity.",
+                    "The effectiveness of the Chair in leading the board is pivotal to the overall performance of the board and its ability to govern effectively. The Chair plays a crucial role in facilitating board discussions, ensuring that meetings are structured, focused, and productive. By setting clear agendas, guiding conversations, and managing the flow of discussions, the Chair helps the board focus on key issues and drive meaningful outcomes that align with the organization's strategic goals. A good Chair ensures that all board members have an opportunity to contribute, fostering a culture of participation, challenge, and collaboration. This balance is essential for effective decision-making, as it encourages diverse perspectives while maintaining a respectful and productive atmosphere. The Chair should actively manage any conflicts or disagreements, ensuring that all voices are heard and that discussions lead to actionable decisions. In addition to facilitating board meetings, the Chair has a responsibility to proactively develop the board’s effectiveness over time. This includes gathering feedback from board members to identify areas for improvement and implementing measures to enhance board performance. The Chair should also be actively involved in succession planning, ensuring that the board remains dynamic and capable of adapting to changing needs, while also fostering strong relationships and engagement among directors. Ultimately, the Chair’s ability to guide the board effectively, balance participation and challenge, and drive continuous improvement ensures that the board functions at its highest potential, making informed and strategic decisions for the organization’s success."
                 ]
                 
                 # Prepare AI response
                 ai_messages = compose_ai_messages(False, "", user_responses[number_of_question_in_progress-1], chat_history)
                 ai_response = get_ai_response(ai_messages)
 
-                if (magic_word in ai_response and number_of_question_in_progress < total_number):
-                    # Add ai response to current chat history
-                    ai_response = ai_response.replace(magic_word, "").strip()
-                    ai_messages.append({
-                        "role": "assistant",
-                        "content": ai_response
-                    })
+                user_answer_count = len([msg for msg in ai_messages if msg["role"] == "user"]) - 1
+
+                print(f"user_answer_count {user_answer_count}")
+
+                move_on_to_next = magic_word in ai_response or user_answer_count > 1
+
+                print(f"move_on_to_next {move_on_to_next}")
+
+                if ( move_on_to_next and number_of_question_in_progress < total_number):
+                    if (magic_word in ai_response):
+                        # Add ai response to current chat history
+                        ai_response = ai_response.replace(magic_word, "").strip()
+                        ai_messages.append({
+                            "role": "assistant",
+                            "content": ai_response
+                        })
+                    else:
+                        ai_response = ""
 
                     # Move to next question
-                    number_of_question_in_progress += 1
+                    number_of_question_in_progress = number_of_question_in_progress + 1
 
                     new_question = next(
                         (q['question'] for q in context['questions'] if q['number'] == number_of_question_in_progress),
@@ -92,20 +106,24 @@ async def websocket_endpoint(websocket: WebSocket):
                     context['progress'] = progress
 
                     ai_response = f"{ai_response} {new_ai_response}"
-                elif (magic_word in ai_response and number_of_question_in_progress == total_number):
-                    # Add ai response to current chat history
-                    ai_response = ai_response.replace(magic_word, "").strip()
-                    ai_messages.append({
-                        "role": "assistant",
-                        "content": ai_response
-                    })
+
+                elif (move_on_to_next and number_of_question_in_progress == total_number):
+                    if (magic_word in ai_response):
+                        # Add ai response to current chat history
+                        ai_response = ai_response.replace(magic_word, "").strip()
+                        ai_messages.append({
+                            "role": "assistant",
+                            "content": ai_response
+                        })
+                    else:
+                        ai_response = ""
 
                     # Get summary of the survey
                     is_survey_completed = True
 
                     # Compose all question chat history
                     conversation = "\n".join(
-                        f"{'Survey Conductor' if message['role'] == 'assistant' else 'User'}: {message['content']}"
+                        f"{'Consultant' if message['role'] == 'assistant' else 'User'}: {message['content']}"
                         for entry in history
                         for message in entry.get('chat_history', [])
                         if message.get('role') in ['assistant', 'user']
@@ -123,7 +141,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     )
 
                     # Prepare AI response
-                    ai_messages = compose_ai_messages(True, system_prompt, "", [])
+                    user_input = f"Please give me summary of the conversion. The conversion datails is: {conversation}"
+                    ai_messages = compose_ai_messages(False, system_prompt, user_input, [])
                     new_ai_response = get_ai_response(ai_messages)
 
                     # Update client_context
@@ -134,6 +153,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Generate next audio
                 audio_base64 = await get_audio_from_edge(ai_response)
 
+                print(f"sending response to user")
                 # Send response
                 await websocket.send_json({
                     "currentNumberOfQuestion": number_of_question_in_progress,
