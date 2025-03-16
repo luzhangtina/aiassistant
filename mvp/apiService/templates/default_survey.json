@@ -1,0 +1,27 @@
+[
+    {
+        "number": 1,
+        "question": "How effectively does the board shape and oversee the organization’s long-term strategy?",
+        "description": "Assess the board’s role in guiding, challenging, and supporting strategy while ensuring long-term success. Does the board allocate sufficient time to long-term strategic discussions rather than just reviewing management updates? How effectively does the board challenge and refine management’s strategic proposals? Does the board have a clear view of external trends, risks, and opportunities shaping strategy?"
+    },
+    {
+        "number": 2,
+        "question": "How well does the board oversee and manage risk, balancing resilience with opportunity?",
+        "description": "Evaluate how the board identifies, monitors, and mitigates risks, both financial and non-financial. Is risk proactively embedded in board decision-making, or treated as a compliance exercise? Does the board ensure the organization is prepared for emerging risks, including cyber, ESG, regulatory, and geopolitical risks? How well does the board review and align the organization’s risk appetite with its strategic goals?"
+    },
+    {
+        "number": 3,
+        "question": "Does the board have the right mix of skills, diversity of thought, and industry knowledge to meet the organization’s needs?",
+        "description": "Assess whether the board’s membership, governance culture, and internal dynamics support strong decision-making. Are board discussions open, constructive, and challenging where necessary? How effective is the board’s succession planning and director onboarding in maintaining long-term effectiveness?"
+    },
+    {
+        "number": 4,
+        "question": "How well does the board monitor and support the performance of the CEO?",
+        "description": "Evaluate the board’s effectiveness in overseeing leadership, talent development, and CEO succession. Does the board provide the right level of challenge and support to the executive team? How effectively does the board assess and guide CEO performance and leadership development? Is there a structured, forward-looking approach to CEO and executive succession planning?"
+    },
+    {
+        "number": 5,
+        "question": "How effectively does the Chair lead the board and get the best from all directors?",
+        "description": "Assess the Chair’s role in facilitating effective board discussions, decision-making, and governance culture. Does the Chair ensure board meetings are well-structured, focused, and drive meaningful outcomes? How effectively does the Chair balance participation, challenge, and collaboration among board members? Is the Chair proactively developing the board’s effectiveness through feedback, succession planning, and director engagement?"
+    }
+]

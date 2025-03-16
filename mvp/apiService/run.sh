@@ -14,6 +14,6 @@ pip install -r requirements.txt
 
 # Step 6: Start the API service
 echo "Starting the API service on ws://localhost:7001..."
-uvicorn api:app --host localhost --port 7001
+uvicorn main:app --host localhost --port 7001
 
 # Step 7: To stop the service, press CTRL+C
