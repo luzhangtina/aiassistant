@@ -1,7 +1,11 @@
 # web_socket.py
 from fastapi import WebSocket, WebSocketDisconnect
+from data.questions import get_survey_data
 from services.tts_service import get_audio_from_edge
 from data.client_context_store import client_context_store  # Import the global context store
+from services.ai_service import compose_ai_messages, get_ai_response
+from services.prompt_service import create_system_prompt
+from data.magic_word import magic_word
 
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -14,30 +18,121 @@ async def websocket_endpoint(websocket: WebSocket):
             user_audio_data_base64 = data['audioBase64']
 
             try:
-                user_context = client_context_store.get_context(client_id)['context']
-                number_of_question_in_progress = user_context['number_of_current_question']
-                total_number = user_context['number_of_total_questions']
+                user_context = client_context_store.get_context(client_id)
+                context = user_context['context']
+                number_of_question_in_progress = context['number_of_current_question']
+                new_question = next(
+                    (q['question'] for q in context['questions'] if q['number'] == number_of_question_in_progress),
+                    "Question not found"
+                )
+                total_number = context['number_of_total_questions']
                 progress = (number_of_question_in_progress * 100) // total_number
 
-                # Move to the next question
+                history = user_context['history']
+                chat_history = next((entry['chat_history'] for entry in history if entry.get('number_of_question') == number_of_question_in_progress), [])
+
                 is_survey_completed = False
-                if number_of_question_in_progress < total_number:
+
+                user_responses = [
+                    "I believe the board plays a crucial role in shaping and overseeing our long-term strategy. They dedicate time during quarterly meetings specifically to strategic discussions, going beyond routine performance reviews. This ensures that we’re not just reacting to short-term results but actively planning for sustainable growth. The board consistently challenges management’s proposals by asking thought-provoking questions and encouraging alternative perspectives. For example, during our recent expansion planning, they pushed us to consider emerging market risks and diversify our approach, leading to a more resilient strategy. Additionally, they stay informed on external factors — from economic trends to industry disruptions — through regular briefings from experts. This proactive approach helps the organization stay ahead of potential risks and seize new opportunities. Overall, their involvement ensures our strategy remains forward-thinking, adaptable, and aligned with our mission.",
+                    "The board takes a proactive approach to risk management, integrating risk considerations directly into strategic discussions rather than treating it as a separate compliance task. They regularly review a comprehensive risk dashboard that covers financial metrics, operational risks, and emerging challenges like cybersecurity, ESG factors, and regulatory changes. Each major strategic decision includes an assessment of potential risks and opportunities, ensuring the organization balances resilience with growth. Additionally, the board periodically invites external experts to provide insights on evolving geopolitical risks and technological threats, helping them stay ahead of potential disruptions. The organization’s risk appetite is clearly defined and revisited annually to ensure it remains aligned with long-term strategic goals, fostering a culture that supports innovation while maintaining robust safeguards."
+                ]
+                
+                # Prepare AI response
+                ai_messages = compose_ai_messages(False, "", user_responses[number_of_question_in_progress-1], chat_history)
+                ai_response = get_ai_response(ai_messages)
+
+                if (magic_word in ai_response and number_of_question_in_progress < total_number):
+                    # Add ai response to current chat history
+                    ai_response = ai_response.replace(magic_word, "").strip()
+                    ai_messages.append({
+                        "role": "assistant",
+                        "content": ai_response
+                    })
+
+                    # Move to next question
                     number_of_question_in_progress += 1
+
                     new_question = next(
-                        (q['question'] for q in user_context['questions'] if q['number'] == number_of_question_in_progress),
+                        (q['question'] for q in context['questions'] if q['number'] == number_of_question_in_progress),
                         "Question not found"
                     )
-                else:
-                    new_question = "Survey complete!"
+
+                    survey_data = context['survey_data']
+                    current_survey_data = get_survey_data(survey_data, 1)
+
+                    # Generate system prompt for the AI
+                    system_prompt = create_system_prompt(
+                        init=False,
+                        summary=False,
+                        client_name=name,
+                        question_text=new_question,
+                        description=current_survey_data['description'],
+                        chat_history=[],
+                        magic_ending_word=magic_word
+                    )
+
+                    # Prepare AI response
+                    ai_messages = compose_ai_messages(True, system_prompt, "", [])
+                    new_ai_response = get_ai_response(ai_messages)
+
+                    # Update client_context
+                    ai_messages.append({
+                        "role": "assistant",
+                        "content": new_ai_response
+                    })
+                    history.append({
+                        "number_of_question": number_of_question_in_progress,
+                        "chat_history": ai_messages
+                    })
+
+                    # Update context
+                    context['number_of_current_question'] = number_of_question_in_progress
+                    context['current_question'] = new_question
+                    context['progress'] = progress
+
+                    ai_response = f"{ai_response} {new_ai_response}"
+                elif (magic_word in ai_response and number_of_question_in_progress == total_number):
+                    # Add ai response to current chat history
+                    ai_response = ai_response.replace(magic_word, "").strip()
+                    ai_messages.append({
+                        "role": "assistant",
+                        "content": ai_response
+                    })
+
+                    # Get summary of the survey
                     is_survey_completed = True
 
-                # Update context
-                user_context['number_of_current_question'] = number_of_question_in_progress
-                user_context['current_question'] = new_question
-                user_context['progress'] = progress
+                    # Compose all question chat history
+                    conversation = "\n".join(
+                        f"{'Survey Conductor' if message['role'] == 'assistant' else 'User'}: {message['content']}"
+                        for entry in history
+                        for message in entry.get('chat_history', [])
+                        if message.get('role') in ['assistant', 'user']
+                    )
+
+                    # Generate system prompt for the AI
+                    system_prompt = create_system_prompt(
+                        init=False,
+                        summary=True,
+                        client_name=name,
+                        question_text="",
+                        description="",
+                        chat_history=conversation,
+                        magic_ending_word=""
+                    )
+
+                    # Prepare AI response
+                    ai_messages = compose_ai_messages(True, system_prompt, "", [])
+                    new_ai_response = get_ai_response(ai_messages)
+
+                    # Update client_context
+                    user_context['survey_summary'] = new_ai_response
+
+                    ai_response = f"{ai_response} {new_ai_response}"
 
                 # Generate next audio
-                audio_base64 = await get_audio_from_edge(new_question)
+                audio_base64 = await get_audio_from_edge(ai_response)
 
                 # Send response
                 await websocket.send_json({
