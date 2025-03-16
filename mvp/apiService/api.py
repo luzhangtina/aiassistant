@@ -104,7 +104,7 @@ async def init_api(request: InitRequest):
             'history': [],
             'context': {
                 'number_of_total_questions': len(questions_list),
-                'number_of_current_questions': 1,
+                'number_of_current_question': 1,
                 'progress': 0,
                 'current_question': next(
                     (q['question'] for q in questions_list if q['number'] == 1),
@@ -115,13 +115,13 @@ async def init_api(request: InitRequest):
         }
 
         user_context = client_context[request.clientId]['context']
-        response_from_ai = f"Hi {request.name}. Hope you are doing well! let's start the survey! Question {user_context['number_of_current_questions']}: {user_context['current_question']}"
+        response_from_ai = f"Hi {request.name}. Hope you are doing well! let's start the survey! Question {user_context['number_of_current_question']}: {user_context['current_question']}"
         audio_data = await get_audio_from_edge(response_from_ai)
         audio_base64 = base64.b64encode(audio_data).decode('utf-8')
         response_data = {
             "numberOfTotalQuestions": user_context['number_of_total_questions'],
             "questions": user_context['questions'],
-            "currentNumberOfQuestion": user_context['number_of_current_questions'],
+            "currentNumberOfQuestion": user_context['number_of_current_question'],
             "progress": user_context['progress'],
             "currentQuestion": user_context['current_question'],
             "audioBase64": audio_base64
@@ -147,13 +147,41 @@ async def websocket_endpoint(websocket: WebSocket):
             print(f"client_id: {client_id}. name: {name}. user_audio_data_base64 (first 50 bytes): {user_audio_data_base64[:50]}")
 
             try:
-                response_from_ai = f"This is follow up response. The number is {count}!"
-                transcript = f"this is response {count}"
-                count = count + 1
+                response_from_ai = "Thanks for your survey!"
+                is_survey_completed = False
+                new_question = ""
+
+                user_context = client_context[client_id]['context']
+                number_of_question_in_progress = user_context['number_of_current_question']
+                total_number = user_context['number_of_total_questions']
+                progress = (number_of_question_in_progress * 100) // total_number
+                
+                if (number_of_question_in_progress < total_number):
+                    number_of_question_in_progress = number_of_question_in_progress + 1
+                    new_question = next(
+                        (q['question'] for q in questions_list if q['number'] == number_of_question_in_progress),
+                        "Question not found"
+                    )
+                    
+                    response_from_ai = new_question
+                else:
+                    is_survey_completed = True
+
+                client_context[client_id]['context']['number_of_current_question'] = number_of_question_in_progress
+                client_context[client_id]['context']['current_question'] = new_question
+                client_context[client_id]['context']['progress'] = new_question
+
 
                 audio_data = await get_audio_from_edge(response_from_ai)
                 audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                await websocket.send_json({"transcript": transcript, "audioBase64": audio_base64, "isSurveyCompleted": False})
+                response_data = {
+                    "currentNumberOfQuestion":number_of_question_in_progress,
+                    "progress": progress,
+                    "currentQuestion": new_question,
+                    "audioBase64": audio_base64,
+                    "isSurveyCompleted": is_survey_completed
+                }
+                await websocket.send_json(response_data)
             except Exception as e:
                 print("Error processing audio:", e)
     except WebSocketDisconnect:

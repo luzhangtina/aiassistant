@@ -46,14 +46,21 @@ const SurveyScreen: React.FC = () => {
   const handleSocketMessage = (event: WebSocketMessageEvent) => {
     const data = JSON.parse(event.data);
     
+    const isSurveyCompleted = data.isSurveyCompleted;
+    setDynamicQuestionData({
+      "currentNumberOfQuestion": data.currentNumberOfQuestion,
+      "currentQuestion": data.currentQuestion,
+      "progress": data.progress
+    });
+
     if (data.audioBase64) {
-      playAudio(data.audioBase64);
+      playAudio(data.audioBase64, isSurveyCompleted);
     }
   };
 
   const { sendMessage, closeConnection } = useWebSocket(config.wsUrl, handleSocketMessage);
 
-  const playAudio = async (base64: string) => {
+  const playAudio = async (base64: string, isLastMessage: boolean = false) => {
     try {
       // Unload previous audio if exists
       if (audio) {
@@ -66,7 +73,7 @@ const SurveyScreen: React.FC = () => {
         { uri: audioUri },
         { shouldPlay: true },
         ( status ) => {
-          if (status.isLoaded && status.didJustFinish) {
+          if (status.isLoaded && status.didJustFinish && (!isLastMessage)) {
             setIsRecordButtonPressed(false);
             setCanPressRecordButton(true);
           }
