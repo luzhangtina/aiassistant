@@ -1,0 +1,24 @@
+//
+//  .gitignore
+//  BoardOutlook
+//
+//  Created by lu on 21/3/2025.
+//
+# Xcode project files
+*.xcworkspace/
+xcuserdata/
+**/xcuserdata/
+DerivedData/
+Build/
+*.DS_Store
+
+# Swift Package Manager
+/.swiftpm
+Package.resolved
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/
