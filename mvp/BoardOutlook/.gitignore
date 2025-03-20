@@ -4,21 +4,25 @@
 //
 //  Created by lu on 21/3/2025.
 //
-# Xcode project files
-*.xcworkspace/
+
+# User-specific Xcode data
+*.xcuserstate
 xcuserdata/
-**/xcuserdata/
+
+project.xcworkspace/
+
+# Build and derived files
 DerivedData/
-Build/
-*.DS_Store
+build/
 
 # Swift Package Manager
-/.swiftpm
+.swiftpm/
 Package.resolved
 
 # CocoaPods
 Pods/
 Podfile.lock
 
-# Carthage
-Carthage/
+# Misc
+*.xcscmblueprint
+*.xcdebugger
