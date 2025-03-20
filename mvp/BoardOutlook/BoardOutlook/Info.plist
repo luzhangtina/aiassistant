@@ -4,8 +4,8 @@
 <dict>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Oxanium</string>
-		<string>DarkerGrotesque</string>
+		<string>Oxanium.ttf</string>
+		<string>DarkerGrotesque.ttf</string>
 	</array>
 </dict>
 </plist>
