@@ -14,13 +14,25 @@ struct HomeScreenView : View {
         ZStack {
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color(hex: 0x0c0c4c),
-                    Color(hex: 0x0d0d4d)
+                    Color(hex: 0x070347),
+                    Color(hex: 0x143d92)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+            
+            Ellipse()
+                .fill(LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(hex: 0x2a4e9a),
+                        Color(hex: 0x2a468f)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom))
+                .frame(width: UIScreen.main.bounds.width * 1.3, height: UIScreen.main.bounds.height * 0.4)
+                .position(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.height * 0.87)
+                
             
             VStack {
                 Spacer()

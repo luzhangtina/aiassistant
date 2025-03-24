@@ -60,7 +60,13 @@ struct PreparingStateView: View {
             
             ZStack {
                 Circle()
-                    .fill(.blue)
+                    .fill(LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(hex: 0x3bb3fd),
+                            Color(hex: 0x2e61e6)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom))
                     .frame(width: 68, height: 68)
                 
                 Image(systemName: "microphone.fill")
