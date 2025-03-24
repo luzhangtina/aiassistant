@@ -15,4 +15,9 @@ extension Font {
     static func darkerGrotesque(size: CGFloat) -> Font {
         return .custom("DarkerGrotesque", size: size)
     }
+    
+    static func sfProTextRegular(size: CGFloat) -> Font {
+        return .custom("SFProTextRegular", size: size)
+    }
+
 }
