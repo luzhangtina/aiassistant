@@ -15,7 +15,7 @@ struct NextButtonView: View {
                 .font(.darkerGrotesque(size: 20))
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, maxHeight: 48)
-                .foregroundColor(.onboardingButtonForeground)
+                .foregroundStyle(.onboardingButtonForeground)
                 .background(.onboardingButtonBackground)
                 .cornerRadius(12)
         }

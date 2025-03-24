@@ -12,12 +12,17 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            OnboardingBackgroundView()
-            VStack(alignment: .leading, spacing: 10) {
+            if (currentPage == 99) {
+                HomeScreenView()
+            }
+            else {
+                OnboardingBackgroundView()
+                VStack(alignment: .leading, spacing: 10) {
                     currentPageView()
                     bottomButton()
                 }
                 .padding(.horizontal, 32)
+            }
         }
     }
     
@@ -25,16 +30,16 @@ struct OnboardingView: View {
     private func currentPageView() -> some View {
         Group {
             switch currentPage {
-                case 0:
-                    WelcomePageView()
-                case 1:
-                    BoardEvaluationPageView(onSkip: goHome)
-                case 2:
-                    InteractiveExperiencePageView(onSkip: goHome)
-                case 3:
-                    YouAreInControlPageView (onNext: goHome)
-                default:
-                    HomeView()
+            case 0:
+                WelcomePageView()
+            case 1:
+                BoardEvaluationPageView(onSkip: goHome)
+            case 2:
+                InteractiveExperiencePageView(onSkip: goHome)
+            case 3:
+                YouAreInControlPageView (onNext: goHome)
+            default:
+                EmptyView()
             }
         }
         .transition(.moveUpAndFade)
@@ -43,29 +48,29 @@ struct OnboardingView: View {
     @ViewBuilder
     private func bottomButton() -> some View {
         switch currentPage {
-            case 0:
-                Button(action: goToNextPage) {
-                    HStack {
-                        Text("Get started")
-                            .font(.darkerGrotesque(size: 20))
-                            .fontWeight(.semibold)
-                        Image(systemName: "arrow.right")
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: 48)
-                    .foregroundColor(.onboardingButtonForeground)
-                    .background(.onboardingButtonBackground)
-                    .cornerRadius(12)
+        case 0:
+            Button(action: goToNextPage) {
+                HStack {
+                    Text("Get started")
+                        .font(.darkerGrotesque(size: 20))
+                        .fontWeight(.semibold)
+                    Image(systemName: "arrow.right")
                 }
                 .frame(maxWidth: .infinity, maxHeight: 48)
-                .contentShape(Rectangle())
-            case 1:
-                NextButtonView(onNext: goToNextPage)
-            case 2:
-                NextButtonView(onNext: goToNextPage)
-            case 3:
-                NextButtonView(onNext: goToNextPage)
-            default:
-                EmptyView()
+                .foregroundStyle(.onboardingButtonForeground)
+                .background(.onboardingButtonBackground)
+                .cornerRadius(12)
+            }
+            .frame(maxWidth: .infinity, maxHeight: 48)
+            .contentShape(Rectangle())
+        case 1:
+            NextButtonView(onNext: goToNextPage)
+        case 2:
+            NextButtonView(onNext: goToNextPage)
+        case 3:
+            NextButtonView(onNext: goToNextPage)
+        default:
+            EmptyView()
         }
     }
     

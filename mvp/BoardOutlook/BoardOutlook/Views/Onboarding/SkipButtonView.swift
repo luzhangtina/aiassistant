@@ -17,7 +17,7 @@ struct SkipButtonView: View {
                     .font(.darkerGrotesque(size: 20))
                     .fontWeight(.semibold)
             }
-            .foregroundColor(.onboardingButtonBackground)
+            .foregroundStyle(.onboardingButtonBackground)
         }
     }
 }
