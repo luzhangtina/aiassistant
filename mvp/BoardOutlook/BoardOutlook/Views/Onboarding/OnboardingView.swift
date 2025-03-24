@@ -12,48 +12,44 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            BackgroundCircleView(colorInHex: 0xf8f4ee, opacity: 0.6, frameWidthFactor: 1.01, positionXFactor: 0.39, positionYFactor: 0.1)
-            BackgroundCircleView(colorInHex: 0xe9f3fd, opacity: 0.6, frameWidthFactor: 1.01, positionXFactor: 0.04, positionYFactor: 0.45)
-            BackgroundCircleView(colorInHex: 0xefeafa, opacity: 0.6, frameWidthFactor: 1.01, positionXFactor: 0.96, positionYFactor: 0.24)
-            
-            switch currentPage {
-                case 0:
-                    WelcomePageView(onButtonPress: {
-                        withAnimation {
-                            currentPage = 1
-                        }
-                    })
-                    
-                case 1:
-                    BoardEvaluationPageView(
-                        onSkip: {
-                            withAnimation {
-                                currentPage = 99
-                            }
-                        },
-                        onNext: {
-                            withAnimation {
-                                currentPage = 3
-                            }
-                        }
-                    )
-                case 3:
-                    HomeView()
-                case 4:
-                    HomeView()
-
-                default:
-                    HomeView()
+            OnboardingBackgroundView()
+            HStack {
+                currentPageView()
             }
+            .padding(.horizontal, 34)
         }
     }
-}
-
-struct HomeView : View {
-    var body: some View {
-        Text("Home Screen")
-            .font(.largeTitle)
-            .navigationTitle("Home")
+    
+    @ViewBuilder
+    private func currentPageView() -> some View {
+        switch currentPage {
+            case 0:
+                WelcomePageView(onButtonPress: goToNextPage)
+            case 1:
+                BoardEvaluationPageView(
+                    onSkip: goHome,
+                    onNext: goToNextPage
+                )
+            case 2:
+                InteractiveExperiencePageView(
+                    onSkip: goHome,
+                    onNext: goToNextPage
+                )
+            case 3:
+                YouAreInControlPageView (
+                    onNext: goHome
+                )
+            default:
+                HomeView()
+        }
+    }
+    
+    private func goToNextPage() {
+        withAnimation { currentPage = currentPage + 1 }
+    }
+    
+    private func goHome() {
+        withAnimation { currentPage = 99 }
     }
 }
 
