@@ -9,7 +9,6 @@ import SwiftUI
 
 struct InteractiveExperiencePageView: View {
     var onSkip: () -> Void
-    var onNext: () -> Void
     
     var body: some View {
         VStack(
@@ -29,13 +28,11 @@ struct InteractiveExperiencePageView: View {
             BulletPointTextView(text: "Alternatively you can select text responses if you prefer")
 
             Spacer(minLength: 70)
-            
-            NextButtonView(onNext: onNext)
         }
     }
 }
 
 
 #Preview {
-    InteractiveExperiencePageView (onSkip: {}, onNext: {})
+    InteractiveExperiencePageView (onSkip: {})
 }

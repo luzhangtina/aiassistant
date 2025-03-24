@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct WelcomePageView: View {
-    var onButtonPress: () -> Void
-    
     var body: some View {
         VStack(
             alignment: .leading,
@@ -30,30 +28,12 @@ struct WelcomePageView: View {
                 .fontWeight(.regular)
                 .multilineTextAlignment(.leading)
             
-            Spacer()
-            
-            Button(action: onButtonPress) {
-                HStack {
-                    Text("Get started")
-                        .font(.darkerGrotesque(size: 20))
-                        .fontWeight(.semibold)
-                    Image(systemName: "arrow.right")
-                }
-                .frame(maxWidth: .infinity, maxHeight: 48)
-                .foregroundColor(.onboardingButtonForeground)
-                .background(.onboardingButtonBackground)
-                .cornerRadius(12)
-            }
-            .frame(maxWidth: .infinity, maxHeight: 48)
-            .contentShape(Rectangle())
-
+            Spacer(minLength: 100)
         }
     }
 }
 
 
 #Preview {
-    WelcomePageView {
-        
-    }
+    WelcomePageView()
 }

@@ -29,8 +29,6 @@ struct YouAreInControlPageView: View {
             BulletPointTextView(text: "Choose how deep to go in responding to questions")
 
             Spacer(minLength: 70)
-            
-            NextButtonView(onNext: onNext)
         }
     }
 }

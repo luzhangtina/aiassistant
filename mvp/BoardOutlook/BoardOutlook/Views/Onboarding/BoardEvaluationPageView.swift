@@ -9,7 +9,6 @@ import SwiftUI
 
 struct BoardEvaluationPageView: View {
     var onSkip: () -> Void
-    var onNext: () -> Void
     
     var body: some View {
         VStack(
@@ -36,13 +35,11 @@ struct BoardEvaluationPageView: View {
                 .multilineTextAlignment(.leading)
             
             Spacer(minLength: 70)
-            
-            NextButtonView(onNext: onNext)
         }
     }
 }
 
 
 #Preview {
-    BoardEvaluationPageView (onSkip: {}, onNext: {})
+    BoardEvaluationPageView (onSkip: {})
 }
