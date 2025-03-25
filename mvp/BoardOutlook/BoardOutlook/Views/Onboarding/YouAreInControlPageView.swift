@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct YouAreInControlPageView: View {
-    var onNext: () -> Void
-    
     var body: some View {
         VStack(
             alignment: .leading,
@@ -35,5 +33,5 @@ struct YouAreInControlPageView: View {
 
 
 #Preview {
-    YouAreInControlPageView (onNext: {})
+    YouAreInControlPageView ()
 }

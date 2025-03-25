@@ -37,7 +37,7 @@ struct OnboardingView: View {
             case 2:
                 InteractiveExperiencePageView(onSkip: goHome)
             case 3:
-                YouAreInControlPageView (onNext: goHome)
+                YouAreInControlPageView ()
             default:
                 EmptyView()
             }
@@ -68,7 +68,7 @@ struct OnboardingView: View {
         case 2:
             NextButtonView(onNext: goToNextPage)
         case 3:
-            NextButtonView(onNext: goToNextPage)
+            NextButtonView(onNext: goHome)
         default:
             EmptyView()
         }
