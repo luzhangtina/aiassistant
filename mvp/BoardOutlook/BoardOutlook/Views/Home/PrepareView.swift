@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct PrepareView: View {
+    @Binding var selectedMode: InterviewMode
+    
     var onComplete: () -> Void
     var onClose: () -> Void
     
@@ -16,29 +18,7 @@ struct PrepareView: View {
             alignment: .center,
             spacing: 10
         ) {
-            HStack {
-                Capsule()
-                    .fill(.white)
-                    .frame(width: 160, height: 40)
-                    .overlay(
-                        HStack(spacing: 0) {
-                            Text("Voice")
-                                .font(.sfProTextRegular(size: 13))
-                                .fontWeight(.medium)
-                                .background(Capsule().fill(.white))
-                                .foregroundStyle(.black)
-                            Text("Text")
-                                .font(.sfProTextRegular(size: 13))
-                                .fontWeight(.medium)
-                                .foregroundStyle(.black)
-                        }
-                    )
-                Spacer()
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                }
-                .foregroundStyle(.white)
-            }
+            ToolbarView(selectedMode: $selectedMode, onClose: onClose)
             .padding(.bottom, 60)
             
             Text("Board Evaluation")
@@ -72,5 +52,7 @@ struct PrepareView: View {
 }
 
 #Preview {
-    PrepareView(onComplete: {}, onClose: {})
+    @Previewable @State var mode = InterviewMode.voice
+    
+    return PrepareView(selectedMode: $mode, onComplete: {}, onClose: {})
 }
