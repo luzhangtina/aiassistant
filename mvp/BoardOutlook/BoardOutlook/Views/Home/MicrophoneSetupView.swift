@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-struct PrepareView: View {
+struct MicrophoneSetupView: View {
     @Binding var selectedMode: InterviewMode
+    @Binding var isListening: Bool
     
-    var onComplete: () -> Void
     var onClose: () -> Void
     
     var body: some View {
@@ -32,24 +32,18 @@ struct PrepareView: View {
             
             Spacer()
             
-            StaticMicView()
+            MicView(isListening: $isListening)
                 .padding(.bottom, 30)
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter (
-                deadline: .now() + 2.0
-            ) {
-                onComplete()
-            }
         }
     }
 }
 
 #Preview {
     @Previewable @State var mode = InterviewMode.voice
+    @Previewable @State var isListening = false
     
-    return PrepareView(
+    return MicrophoneSetupView(
         selectedMode: $mode,
-        onComplete: {},
+        isListening: $isListening,
         onClose: {})
 }

@@ -33,7 +33,6 @@ struct HomeScreenView : View {
                 case .preparing:
                     PrepareView(
                         selectedMode: $currentInterviewMode,
-                        isListening: $isListening,
                         onComplete: {
                             currentState = .microphoneSetUp
                             currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
@@ -43,15 +42,15 @@ struct HomeScreenView : View {
                         }
                     )
                 case .microphoneSetUp:
-                    PrepareView(
+                    MicrophoneSetupView(
                         selectedMode: $currentInterviewMode,
                         isListening: $isListening,
-                        onComplete: {
-                        },
                         onClose: {
                             
                         }
                     )
+                default:
+                    EmptyView()
                 }
                 
                 Spacer()

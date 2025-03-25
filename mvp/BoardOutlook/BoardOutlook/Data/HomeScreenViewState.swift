@@ -9,5 +9,6 @@ enum HomeScreenViewState {
     case loading
     case preparing
     case microphoneSetUp
+    case obtainMicrophonePermission
 }
 
