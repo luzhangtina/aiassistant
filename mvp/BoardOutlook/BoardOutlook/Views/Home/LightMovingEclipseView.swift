@@ -33,8 +33,8 @@ struct LightMovingEclipseView: View {
                 )
                 .mask(Ellipse())
                 .frame(
-                    width: geometry.size.width * 1.3,
-                    height: geometry.size.height * 0.4
+                    width: geometry.size.width * 1.5,
+                    height: geometry.size.height * 0.35
                 )
                 .position(
                     x: geometry.size.width / 2,
