@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PrepareView: View {
     @Binding var selectedMode: InterviewMode
+    @Binding var isListening: Bool
     
     var onComplete: () -> Void
     var onClose: () -> Void
@@ -32,14 +33,8 @@ struct PrepareView: View {
             
             Spacer()
             
-            ZStack {
-                Circle()
-                    .fill(.blue)
-                    .frame(width: 68, height: 68)
-                
-                Image(systemName: "microphone.fill")
-            }
-            .padding(.bottom, 20)
+            MicView(isListening: $isListening)
+                .padding(.bottom, 30)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter (
@@ -53,6 +48,11 @@ struct PrepareView: View {
 
 #Preview {
     @Previewable @State var mode = InterviewMode.voice
+    @Previewable @State var isListening = false
     
-    return PrepareView(selectedMode: $mode, onComplete: {}, onClose: {})
+    return PrepareView(
+        selectedMode: $mode,
+        isListening: $isListening,
+        onComplete: {},
+        onClose: {})
 }
