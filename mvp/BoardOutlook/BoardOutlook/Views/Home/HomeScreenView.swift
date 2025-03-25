@@ -27,7 +27,7 @@ struct HomeScreenView : View {
                         currentCenteredText = "One moment..."
                     })
                 case .preparing:
-                    PreparingStateView(
+                    PrepareView(
                         onComplete: {
                             currentState = .microphoneSetUp
                             currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
@@ -37,7 +37,7 @@ struct HomeScreenView : View {
                         }
                     )
                 case .microphoneSetUp:
-                    MicrophoneSetupView(onComplete: {
+                    PrepareView(onComplete: {
                     },
                     onClose: {
                         

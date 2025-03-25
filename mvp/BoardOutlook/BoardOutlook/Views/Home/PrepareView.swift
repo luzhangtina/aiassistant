@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MicrophoneSetupView: View {
+struct PrepareView: View {
     var onComplete: () -> Void
     var onClose: () -> Void
     
@@ -72,5 +72,5 @@ struct MicrophoneSetupView: View {
 }
 
 #Preview {
-    MicrophoneSetupView(onComplete: {}, onClose: {})
+    PrepareView(onComplete: {}, onClose: {})
 }

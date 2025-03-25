@@ -27,3 +27,7 @@ struct CenteredTextView: View {
         .edgesIgnoringSafeArea(.all)
     }
 }
+
+#Preview {
+    CenteredTextView(text: .constant("This is a text to check if multi-line description works as expected"))
+}
