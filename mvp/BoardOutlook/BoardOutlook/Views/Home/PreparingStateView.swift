@@ -52,12 +52,6 @@ struct PreparingStateView: View {
             
             Spacer()
             
-            Text("One moment...")
-                .font(.sfProTextRegular(size: 16))
-                .foregroundStyle(.white)
-            
-            Spacer()
-            
             ZStack {
                 Circle()
                     .fill(LinearGradient(

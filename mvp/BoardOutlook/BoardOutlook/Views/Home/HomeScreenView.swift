@@ -9,30 +9,13 @@ import SwiftUI
 
 struct HomeScreenView : View {
     @State private var currentState: HomeScreenViewState = .loading
+    @State private var currentCenteredText: String = "Let's get started..."
     
     var body: some View {
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(hex: 0x070347),
-                    Color(hex: 0x143d92)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            HomeScreenBackgroundView()
             
-            Ellipse()
-                .fill(LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(hex: 0x2a4e9a),
-                        Color(hex: 0x2a468f)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom))
-                .frame(width: UIScreen.main.bounds.width * 1.3, height: UIScreen.main.bounds.height * 0.4)
-                .position(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.height * 0.87)
-                
+            CenteredTextView(text: $currentCenteredText)
             
             VStack {
                 Spacer()
@@ -40,18 +23,14 @@ struct HomeScreenView : View {
                 switch currentState {
                 case .loading:
                     LoadingStateView(onComplete: {
-                        withAnimation {
-                            currentState = .preparing
-                        }
+                        currentState = .preparing
+                        currentCenteredText = "One moment..."
                     })
                 case .preparing:
                     PreparingStateView(
                         onComplete: {
-                            withAnimation {
-                                withAnimation {
-                                    currentState = .microphoneSetUp
-                                }
-                            }
+                            currentState = .microphoneSetUp
+                            currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
                         },
                         onClose: {
                             
@@ -59,7 +38,6 @@ struct HomeScreenView : View {
                     )
                 case .microphoneSetUp:
                     MicrophoneSetupView(onComplete: {
-                        
                     },
                     onClose: {
                         

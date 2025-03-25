@@ -15,9 +15,6 @@ struct LoadingStateView: View {
             alignment: .center,
             spacing: 10
         ) {
-            Text("Let's get started...")
-                .font(.sfProTextRegular(size: 16))
-                .foregroundStyle(.white)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter (

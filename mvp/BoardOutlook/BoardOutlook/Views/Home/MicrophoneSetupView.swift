@@ -52,12 +52,6 @@ struct MicrophoneSetupView: View {
             
             Spacer()
             
-            Text("First, connect your headphones and say something by tapping the mic below for testing...")
-                .font(.sfProTextRegular(size: 16))
-                .foregroundStyle(.white)
-            
-            Spacer()
-            
             ZStack {
                 Circle()
                     .fill(.blue)
