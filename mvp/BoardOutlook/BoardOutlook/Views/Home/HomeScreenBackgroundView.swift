@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct HomeScreenBackgroundView: View {
-    @State private var animateGradient = false
-
+    @Binding var homeScreenState: HomeScreenViewState
+    
     var body: some View {
         ZStack {
             LinearGradient(
@@ -22,13 +22,17 @@ struct HomeScreenBackgroundView: View {
             )
             .ignoresSafeArea()
             
-            LightMovingEclipseView()
+            LightMovingEclipseView(homeScreenState: $homeScreenState)
 
         }
     }
 }
 
 #Preview {
-    HomeScreenBackgroundView()
+    @Previewable @State var homeScreenState: HomeScreenViewState = .introduction
+    
+    HomeScreenBackgroundView(
+        homeScreenState: $homeScreenState
+    )
 }
 

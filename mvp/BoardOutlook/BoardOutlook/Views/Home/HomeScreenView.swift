@@ -15,7 +15,7 @@ struct HomeScreenView : View {
 
     var body: some View {
         ZStack {
-            HomeScreenBackgroundView()
+            HomeScreenBackgroundView(homeScreenState: $currentState)
             
             ZStack {
                 CenteredTextView(text: $currentCenteredText)
