@@ -22,7 +22,7 @@ struct HomeScreenBackgroundView: View {
             )
             .ignoresSafeArea()
             
-            LightMovingEclipseView(homeScreenState: $homeScreenState)
+            LightMovingEclipseView()
 
         }
     }

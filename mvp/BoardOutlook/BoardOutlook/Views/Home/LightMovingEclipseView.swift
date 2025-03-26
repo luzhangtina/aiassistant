@@ -10,8 +10,6 @@ import SwiftUI
 struct LightMovingEclipseView: View {
     @State private var animateGradient = false
     
-    @Binding var homeScreenState: HomeScreenViewState
-    
     var body: some View {
         GeometryReader { geometry in
             Ellipse()
@@ -53,10 +51,6 @@ struct LightMovingEclipseView: View {
     }
 }
 
-#Preview {
-    @Previewable @State var homeScreenState: HomeScreenViewState = .countdown
-    
-    LightMovingEclipseView(
-        homeScreenState: $homeScreenState
-    )
+#Preview {    
+    LightMovingEclipseView()
 }
