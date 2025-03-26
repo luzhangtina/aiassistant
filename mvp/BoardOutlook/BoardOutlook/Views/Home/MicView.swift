@@ -10,6 +10,8 @@ import SwiftUI
 struct MicView: View {
     @Binding var isListening : Bool
     
+    var onTap: () -> Void
+    
     var body: some View {
         ZStack {
             if (!isListening) {
@@ -20,6 +22,7 @@ struct MicView: View {
         }
         .onTapGesture {
             isListening = !isListening
+            onTap()
         }
     }
 }
@@ -27,6 +30,9 @@ struct MicView: View {
 #Preview {
     @Previewable @State var isListening = false
     
-    MicView(isListening: $isListening)
+    MicView(
+        isListening: $isListening,
+        onTap: {}
+    )
 }
 
