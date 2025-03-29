@@ -8,33 +8,30 @@
 import SwiftUI
 
 struct HomeScreenView : View {
-    @State private var currentState: HomeScreenViewState = .loading
-    @State private var currentCenteredText: String = "Let's get started..."
-    @State private var currentInterviewMode: InterviewMode = .voice
-    @State private var isListening: Bool = false
+    @State private var homeScreenViewModel = HomeScreenViewModel()
 
     var body: some View {
         ZStack {
-            HomeScreenBackgroundView(homeScreenState: $currentState)
+            HomeScreenBackgroundView(homeScreenState: $homeScreenViewModel.currentState)
             
             ZStack {
-                CenteredTextView(text: $currentCenteredText)
+                CenteredTextView(text: $homeScreenViewModel.currentCenteredText)
                 
                 VStack {
-                    if (currentState != .loading) {
+                    if (homeScreenViewModel.currentState != .loading) {
                         ToolbarView(
-                            selectedMode: $currentInterviewMode,
+                            selectedMode: $homeScreenViewModel.currentInterviewMode,
                             onClose: {
                                 
                             }
                         )
                         
-                        if (currentState == .preparing
-                            || currentState == .microphoneSetUp
-                            || currentState == .obtainMicrophonePermission
-                            || currentState == .introduction
-                            || currentState == .askForGettingReady
-                            || currentState == .userIsReady) {
+                        if (homeScreenViewModel.currentState == .preparing
+                            || homeScreenViewModel.currentState == .microphoneSetUp
+                            || homeScreenViewModel.currentState == .obtainMicrophonePermission
+                            || homeScreenViewModel.currentState == .introduction
+                            || homeScreenViewModel.currentState == .askForGettingReady
+                            || homeScreenViewModel.currentState == .userIsReady) {
                             Text("Board Evaluation")
                                 .font(.sfProTextRegular(size: 32))
                                 .foregroundStyle(.white)
@@ -50,83 +47,81 @@ struct HomeScreenView : View {
                         }
                     }
                     
-                    switch currentState {
+                    switch homeScreenViewModel.currentState {
                     case .loading:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                currentState = .preparing
-                                currentCenteredText = "One moment..."
+                                homeScreenViewModel.currentState = .preparing
+                                homeScreenViewModel.currentCenteredText = "One moment..."
                             }
                         )
                     case .preparing:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                currentState = .microphoneSetUp
-                                currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
+                                homeScreenViewModel.currentState = .microphoneSetUp
+                                homeScreenViewModel.currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
                             }
                         )
                     case .microphoneSetUp:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
                                 // TODO: ask for microphone permission
                                 // If permission is granted, then change state
                                 // Otherwise, stay on this screen
-                                currentState = .obtainMicrophonePermission
-                                currentCenteredText = "I am listening..."
+                                homeScreenViewModel.currentState = .obtainMicrophonePermission
+                                homeScreenViewModel.currentCenteredText = "I am listening..."
                             }
                         )
                     case .obtainMicrophonePermission:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                currentState = .introduction
-                                currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
+                                homeScreenViewModel.currentState = .introduction
+                                homeScreenViewModel.currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
                             }
                         )
                     case .introduction:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                currentState = .askForGettingReady
-                                currentCenteredText = "Are you ready to get started? Just say 'Yes' or anything like that and I will get right in"
+                                homeScreenViewModel.currentState = .askForGettingReady
+                                homeScreenViewModel.currentCenteredText = "Are you ready to get started? Just say 'Yes' or anything like that and I will get right in"
                             }
                         )
                     case .askForGettingReady:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                currentState = .userIsReady
+                                homeScreenViewModel.currentState = .userIsReady
                             }
                         )
                     case .userIsReady:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                // TODO: Only when user is ready, change to count down
-                                // TODO: Otherwise, go back to askForGettingReady
-                                currentState = .countdown
-                                currentCenteredText = ""
+                                Task {
+                                    let user = User(clientId: "client1", name: "Harshad")
+                                    await homeScreenViewModel.startInterview(for: user)
+                                }
                             }
                         )
                     case .countdown:
                         TransitionView(
-                            homeScreenState: $currentState,
-                            isListening: $isListening,
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                // TODO: Only when user is ready, change to count down
-                                // TODO: Otherwise, go back to askForGettingReady
-                                currentState = .playingQuestion
-                                currentCenteredText = ""
+                                homeScreenViewModel.currentState = .playingQuestion
+                                homeScreenViewModel.currentCenteredText = ""
                             }
                         )
                     case .playingQuestion:
