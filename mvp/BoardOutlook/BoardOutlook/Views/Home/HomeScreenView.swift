@@ -146,7 +146,14 @@ struct HomeScreenView : View {
                             isListening: $homeScreenViewModel.isListening,
                             audioBase64String: homeScreenViewModel.interviewProgress?.audioBase64,
                             onNext: {
-                                homeScreenViewModel.currentState = .waitForAnswer
+                                let isSurveyCompleted = homeScreenViewModel.interviewProgress?.isSurveyCompleted ?? false
+                                if (isSurveyCompleted) {
+                                    homeScreenViewModel.currentState = .surveyIsCompleted
+                                    homeScreenViewModel.currentCenteredText = "Thanks for taking the interview..."
+                                }
+                                else {
+                                    homeScreenViewModel.currentState = .waitForAnswer
+                                }
                             }
                         )
                     case .waitForAnswer:
@@ -180,6 +187,8 @@ struct HomeScreenView : View {
                                 }
                             }
                         )
+                    case .surveyIsCompleted:
+                        EmptyView()
                     }
                 }
             }

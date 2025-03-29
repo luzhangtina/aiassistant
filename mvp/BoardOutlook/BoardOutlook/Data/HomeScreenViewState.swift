@@ -18,5 +18,6 @@ enum HomeScreenViewState {
     case waitForAnswer
     case answering
     case waitingForResponse
+    case surveyIsCompleted
 }
 
