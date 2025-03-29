@@ -109,6 +109,11 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                // First, change to countdown state
+                                homeScreenViewModel.currentState = .countdown
+                                homeScreenViewModel.currentCenteredText = ""
+
+                                // Then asynchronously start the interview
                                 Task {
                                     let user = User(clientId: "client1", name: "Harshad")
                                     await homeScreenViewModel.startInterview(for: user)
@@ -120,9 +125,16 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                let currentQuestion = homeScreenViewModel.interviewProgress?.currentQuestion ?? "No current question available"
-                                homeScreenViewModel.currentState = .playingQuestion
-                                homeScreenViewModel.currentCenteredText = currentQuestion
+                                // Only proceed to playing question if we have an API response
+                                if homeScreenViewModel.interviewProgress != nil {
+                                    let currentQuestion = homeScreenViewModel.interviewProgress?.currentQuestion ?? "No current question available"
+                                    homeScreenViewModel.currentState = .playingQuestion
+                                    homeScreenViewModel.currentCenteredText = currentQuestion
+                                } else {
+                                    // If API response isn't ready yet, switch to
+                                    homeScreenViewModel.currentState = .waitingForResponse
+                                    homeScreenViewModel.currentCenteredText = "Loading..."
+                                }
                             }
                         )
                     case .playingQuestion:
@@ -151,7 +163,17 @@ struct HomeScreenView : View {
                             }
                         )
                     case .waitingForResponse:
-                        EmptyView()
+                        TransitionView(
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
+                            onNext: {
+                                if homeScreenViewModel.interviewProgress != nil {
+                                    let currentQuestion = homeScreenViewModel.interviewProgress?.currentQuestion ?? "No current question available"
+                                    homeScreenViewModel.currentState = .playingQuestion
+                                    homeScreenViewModel.currentCenteredText = currentQuestion
+                                }
+                            }
+                        )
                     }
                 }
             }

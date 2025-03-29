@@ -117,7 +117,7 @@ struct TransitionView: View {
     
     func startCountdown() {
         countdownNumber = 5
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
             if countdownNumber > 1 {
                 countdownNumber -= 1
             } else {

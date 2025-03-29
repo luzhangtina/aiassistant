@@ -36,8 +36,13 @@ class HomeScreenViewModel {
             let interviewProgress = try JSONDecoder().decode(InterviewProgress.self, from: data)
             print(interviewProgress)
             self.interviewProgress = interviewProgress
-            self.currentState = .countdown
-            self.currentCenteredText = ""
+            if self.currentState == .waitingForResponse {
+                DispatchQueue.main.async {
+                    let currentQuestion = self.interviewProgress?.currentQuestion ?? "No current question available"
+                    self.currentState = .playingQuestion
+                    self.currentCenteredText = currentQuestion
+                }
+            }
         } catch {
             print("Error: \(error.localizedDescription)")
             self.currentState = .askForGettingReady
