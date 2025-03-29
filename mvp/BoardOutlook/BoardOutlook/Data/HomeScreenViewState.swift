@@ -16,7 +16,7 @@ enum HomeScreenViewState {
     case countdown
     case playingQuestion
     case waitForAnswer
-    case Answering
-    case WaitingForResponse
+    case answering
+    case waitingForResponse
 }
 

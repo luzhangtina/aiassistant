@@ -23,7 +23,8 @@ struct HomeScreenBackgroundView: View {
             .ignoresSafeArea()
             
             if (homeScreenState == .introduction
-                || homeScreenState == .askForGettingReady) {
+                || homeScreenState == .askForGettingReady
+                || homeScreenState == .playingQuestion) {
                 AudioEclipseView()
             } else {
                 LightMovingEclipseView()

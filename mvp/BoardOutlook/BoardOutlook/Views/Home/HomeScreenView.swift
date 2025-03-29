@@ -120,17 +120,37 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                let currentQuestion = homeScreenViewModel.interviewProgress?.currentQuestion ?? "No current question available"
                                 homeScreenViewModel.currentState = .playingQuestion
-                                homeScreenViewModel.currentCenteredText = ""
+                                homeScreenViewModel.currentCenteredText = currentQuestion
                             }
                         )
                     case .playingQuestion:
-                        EmptyView()
+                        TransitionView(
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
+                            audioBase64String: homeScreenViewModel.interviewProgress?.audioBase64,
+                            onNext: {
+                                homeScreenViewModel.currentState = .waitForAnswer
+                            }
+                        )
                     case .waitForAnswer:
-                        EmptyView()
-                    case .Answering:
-                        EmptyView()
-                    case .WaitingForResponse:
+                        TransitionView(
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
+                            onNext: {
+                                homeScreenViewModel.currentState = .answering
+                            }
+                        )
+                    case .answering:
+                        TransitionView(
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
+                            onNext: {
+                                homeScreenViewModel.currentState = .waitingForResponse
+                            }
+                        )
+                    case .waitingForResponse:
                         EmptyView()
                     }
                 }

@@ -6,11 +6,17 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct TransitionView: View {
-    @State var countdownNumber: Int = 5
+    @State private var countdownNumber: Int = 5
+    @State private var audioPlayer: AVAudioPlayer?
+    @State private var playerDelegate: AVPlayerDelegate?
+    
     @Binding var homeScreenState: HomeScreenViewState
     @Binding var isListening: Bool
+    
+    var audioBase64String: String?
     
     var onNext: () -> Void
     
@@ -39,7 +45,9 @@ struct TransitionView: View {
             VStack() {
                 if (homeScreenState == .preparing
                     || homeScreenState == .introduction
-                    || homeScreenState == .countdown) {
+                    || homeScreenState == .countdown
+                    || homeScreenState == .playingQuestion
+                    || homeScreenState == .waitingForResponse) {
                     Spacer()
                     
                     if (homeScreenState == .countdown) {
@@ -56,11 +64,15 @@ struct TransitionView: View {
                 } else if (homeScreenState == .microphoneSetUp
                             || homeScreenState == .obtainMicrophonePermission
                             || homeScreenState == .askForGettingReady
-                            || homeScreenState == .userIsReady) {
+                            || homeScreenState == .userIsReady
+                            || homeScreenState == .waitForAnswer
+                            || homeScreenState == .answering) {
                     Spacer()
                     
                     
-                    if ((homeScreenState == .askForGettingReady || homeScreenState == .userIsReady)
+                    if ((homeScreenState == .askForGettingReady
+                         || homeScreenState == .userIsReady
+                         || homeScreenState == .answering)
                         && isListening) {
                         Spacer()
                         
@@ -83,6 +95,14 @@ struct TransitionView: View {
         .onAppear {
             if (homeScreenState == .countdown) {
                 startCountdown()
+            } else if (homeScreenState == .playingQuestion) {
+                if let audioBase64String = audioBase64String {
+                    playAudioFromBase64(audioBase64String)
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        onNext()
+                    }
+                }
             } else if (homeScreenState == .loading
                         || homeScreenState == .preparing
                         || homeScreenState == .introduction) {
@@ -105,6 +125,42 @@ struct TransitionView: View {
                 onNext()
             }
         }
+    }
+    
+    func playAudioFromBase64(_ base64String: String) {
+        guard let audioData = Data(base64Encoded: base64String) else {
+            print("Failed to decode Base64 audio data")
+            onNext() // Call onNext if data decoding fails
+            return
+        }
+        
+        do {
+            // Create an audio player with the decoded data
+            audioPlayer = try AVAudioPlayer(data: audioData)
+            
+            // Create and store the delegate
+            playerDelegate = AVPlayerDelegate(onCompletion: onNext)
+            audioPlayer?.delegate = playerDelegate
+            
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+        } catch {
+            print("Failed to initialize audio player: \(error)")
+            onNext() // Call onNext if audio playback fails
+        }
+    }
+}
+
+class AVPlayerDelegate: NSObject, AVAudioPlayerDelegate {
+    let onCompletion: () -> Void
+    
+    init(onCompletion: @escaping () -> Void) {
+        self.onCompletion = onCompletion
+        super.init()
+    }
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        onCompletion()
     }
 }
 

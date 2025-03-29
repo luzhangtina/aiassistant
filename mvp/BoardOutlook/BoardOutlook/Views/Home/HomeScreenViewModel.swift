@@ -13,6 +13,7 @@ class HomeScreenViewModel {
     var currentCenteredText: String = "Let's get started..."
     var currentInterviewMode: InterviewMode = .voice
     var isListening: Bool = false
+    var interviewProgress: InterviewProgress?
     
     func startInterview(for user: User) async {
         guard let url = URL(string: "http://localhost:7001/api/init") else { return }
@@ -34,6 +35,7 @@ class HomeScreenViewModel {
             
             let interviewProgress = try JSONDecoder().decode(InterviewProgress.self, from: data)
             print(interviewProgress)
+            self.interviewProgress = interviewProgress
             self.currentState = .countdown
             self.currentCenteredText = ""
         } catch {
