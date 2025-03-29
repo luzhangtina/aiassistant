@@ -6,10 +6,11 @@
 //
 
 struct InterviewProgress: Codable {
-    var numberOfTotalQuestions: Int
-    var questions: [InterviewQuestions]
+    var numberOfTotalQuestions: Int?
+    var questions: [InterviewQuestions]?
     var currentNumberOfQuestion: Int
     var progress: Int
     var currentQuestion: String
     var audioBase64: String
+    var isSurveyCompleted: Bool?
 }

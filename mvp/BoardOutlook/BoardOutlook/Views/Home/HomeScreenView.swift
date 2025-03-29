@@ -109,6 +109,9 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                // Initialize WebSocket connection
+                                homeScreenViewModel.establishWebSocketConnection()
+                                
                                 // First, change to countdown state
                                 homeScreenViewModel.currentState = .countdown
                                 homeScreenViewModel.currentCenteredText = ""
@@ -151,6 +154,7 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                homeScreenViewModel.startRecording()
                                 homeScreenViewModel.currentState = .answering
                             }
                         )
@@ -159,6 +163,8 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                let audioData = homeScreenViewModel.stopRecording()
+                                homeScreenViewModel.sendAudioViaWebSocket(audioData)
                                 homeScreenViewModel.currentState = .waitingForResponse
                             }
                         )
@@ -178,6 +184,9 @@ struct HomeScreenView : View {
                 }
             }
             .padding(.horizontal, 32)
+        }
+        .onDisappear {
+            homeScreenViewModel.closeConnection()
         }
     }
 }
