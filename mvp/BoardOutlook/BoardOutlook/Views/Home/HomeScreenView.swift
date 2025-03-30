@@ -72,9 +72,7 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                // TODO: ask for microphone permission
-                                // If permission is granted, then change state
-                                // Otherwise, stay on this screen
+                                homeScreenViewModel.startRecording()
                                 homeScreenViewModel.currentState = .obtainMicrophonePermission
                                 homeScreenViewModel.currentCenteredText = "I am listening..."
                             }
@@ -84,6 +82,7 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                _ = homeScreenViewModel.stopRecording()
                                 homeScreenViewModel.currentState = .introduction
                                 homeScreenViewModel.currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
                             }
@@ -102,6 +101,7 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                homeScreenViewModel.startRecording()
                                 homeScreenViewModel.currentState = .userIsReady
                             }
                         )
@@ -110,6 +110,8 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                let audioData = homeScreenViewModel.stopRecording()
+
                                 // Initialize WebSocket connection
                                 homeScreenViewModel.establishWebSocketConnection()
                                 

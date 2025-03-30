@@ -95,14 +95,16 @@ class HomeScreenViewModel {
             try audioSession.setActive(true)
             
             let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            recordingURL = documentsPath.appendingPathComponent("recording.m4a")
+            recordingURL = documentsPath.appendingPathComponent("recording.wav")
             
             let settings = [
-                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                AVSampleRateKey: 44100,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-            ]
+                AVFormatIDKey: Int(kAudioFormatLinearPCM),
+                AVSampleRateKey: 16000.0,  // Sample rate for speech
+                AVNumberOfChannelsKey: 1,   // Mono channel
+                AVLinearPCMBitDepthKey: 16, // 16-bit depth
+                AVLinearPCMIsBigEndianKey: false,
+                AVLinearPCMIsFloatKey: false
+            ] as [String : Any]
             
             audioRecorder = try AVAudioRecorder(url: recordingURL!, settings: settings)
             audioRecorder?.record()

@@ -2,6 +2,7 @@
 from fastapi import WebSocket, WebSocketDisconnect
 from data.questions import get_survey_data
 from services.tts_service import get_audio_from_edge
+from services.stt_service import get_text_from_vosk
 from data.client_context_store import client_context_store  # Import the global context store
 from services.ai_service import compose_ai_messages, get_ai_response
 from services.prompt_service import create_system_prompt
@@ -16,6 +17,10 @@ async def websocket_endpoint(websocket: WebSocket):
             client_id = data['clientId']
             name = data['name']
             user_audio_data_base64 = data['audioBase64']
+
+            transcript = get_text_from_vosk(user_audio_data_base64)
+
+            print(f"STT result is : {transcript}")
 
             try:
                 user_context = client_context_store.get_context(client_id)
