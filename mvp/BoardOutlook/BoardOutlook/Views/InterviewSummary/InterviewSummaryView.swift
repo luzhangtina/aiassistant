@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct InterviewSummaryView: View {
-    let interviewSummary: InterviewSummary = InterviewSummary(interviewSummary: [
+    var interviewSummary: InterviewSummary = InterviewSummary(interviewSummary: [
         InterviewSummaryItem(
             title: "Key Board Strengths",
             details: [
@@ -31,14 +31,13 @@ struct InterviewSummaryView: View {
             ]
         ),
     ])
+    
     var body: some View {
         ZStack {
             LightBackgroundBackgroundView()
             
             VStack(alignment: .leading, spacing: 10) {
-                SummaryScreenToolbarView(onClose: {
-                    // TODO: jump to list of history interviews
-                })
+                SummaryScreenToolbarView(onClose: changeRootViewToInterviewHistoryScreen)
                 .padding(.bottom, 20)
                 
                 Text("Here's a high level ")
@@ -68,6 +67,18 @@ struct InterviewSummaryView: View {
             .padding(.horizontal, 32)
         }
     }
+    
+    private func changeRootViewToInterviewHistoryScreen() {
+        guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow }) else { return }
+
+        // Set the new root view controller to HomeScreenView
+        window.rootViewController = UIHostingController(rootView: InterviewHistoryView())
+        window.makeKeyAndVisible()
+    }
+
 }
 
 #Preview {

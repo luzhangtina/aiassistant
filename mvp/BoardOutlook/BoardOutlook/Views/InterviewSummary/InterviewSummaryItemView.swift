@@ -8,25 +8,24 @@
 import SwiftUI
 
 struct InterviewSummaryItemView: View {
-    let interviewSummaryItem: InterviewSummaryItem
+    var interviewSummaryItem: InterviewSummaryItem
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(interviewSummaryItem.title)
-                    .font(.darkerGrotesque(size: 20))
-                    .fontWeight(.semibold)
-                ForEach(interviewSummaryItem.details, id: \.self) { detail in
-                    BulletPointTextView(
-                        text: detail,
-                        fontSize: 14
-                    )
-                    .padding(.leading, 10)
-                }
+            Text(interviewSummaryItem.title)
+                .font(.darkerGrotesque(size: 20))
+                .fontWeight(.semibold)
+            ForEach(interviewSummaryItem.details, id: \.self) { detail in
+                BulletPointTextView(
+                    text: detail,
+                    fontSize: 14
+                )
+                .padding(.leading, 10)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 20)
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(.onboardingButtonForeground)
         .cornerRadius(16)
         .border(.onboardingButtonForeground, width: 0.5)
