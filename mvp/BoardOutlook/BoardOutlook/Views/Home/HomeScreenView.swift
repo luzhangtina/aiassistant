@@ -18,7 +18,8 @@ struct HomeScreenView : View {
                 CenteredTextView(text: $homeScreenViewModel.currentCenteredText)
                 
                 VStack {
-                    if (homeScreenViewModel.currentState != .loading) {
+                    if (homeScreenViewModel.currentState != .loading
+                        && homeScreenViewModel.currentState != .surveyIsCompleted) {
                         ToolbarView(
                             selectedMode: $homeScreenViewModel.currentInterviewMode,
                             onClose: {
@@ -149,7 +150,7 @@ struct HomeScreenView : View {
                                 let isSurveyCompleted = homeScreenViewModel.interviewProgress?.isSurveyCompleted ?? false
                                 if (isSurveyCompleted) {
                                     homeScreenViewModel.currentState = .surveyIsCompleted
-                                    homeScreenViewModel.currentCenteredText = "Thanks for taking the interview..."
+                                    homeScreenViewModel.currentCenteredText = "Your responses have been saved"
                                 }
                                 else {
                                     homeScreenViewModel.currentState = .waitForAnswer
@@ -188,7 +189,13 @@ struct HomeScreenView : View {
                             }
                         )
                     case .surveyIsCompleted:
-                        EmptyView()
+                        TransitionView(
+                            homeScreenState: $homeScreenViewModel.currentState,
+                            isListening: $homeScreenViewModel.isListening,
+                            onNext: {
+                                changeRootViewToInterviewSummaryScreen()
+                            }
+                        )
                     }
                 }
             }
@@ -197,6 +204,17 @@ struct HomeScreenView : View {
         .onDisappear {
             homeScreenViewModel.closeConnection()
         }
+    }
+    
+    private func changeRootViewToInterviewSummaryScreen() {
+        guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow }) else { return }
+
+        // Set the new root view controller to HomeScreenView
+        window.rootViewController = UIHostingController(rootView: InterviewSummaryView())
+        window.makeKeyAndVisible()
     }
 }
 

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct OnboardingBackgroundView: View {
+struct LightBackgroundBackgroundView: View {
     var body: some View {
         ZStack {
             BackgroundCircleView(colorInHex: 0xf8f4ee, opacity: 0.6, frameWidthFactor: 1.01, positionXFactor: 0.39, positionYFactor: 0.1)
@@ -18,5 +18,5 @@ struct OnboardingBackgroundView: View {
 }
 
 #Preview {
-    OnboardingBackgroundView()
+    LightBackgroundBackgroundView()
 }

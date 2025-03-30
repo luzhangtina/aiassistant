@@ -22,7 +22,10 @@ struct HomeScreenBackgroundView: View {
             )
             .ignoresSafeArea()
             
-            if (homeScreenState == .introduction
+            if (homeScreenState == .surveyIsCompleted) {
+                EmptyView()
+            }
+            else if (homeScreenState == .introduction
                 || homeScreenState == .askForGettingReady
                 || homeScreenState == .playingQuestion) {
                 AudioEclipseView()

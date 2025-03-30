@@ -43,7 +43,21 @@ struct TransitionView: View {
             }
             
             VStack() {
-                if (homeScreenState == .preparing
+                if (homeScreenState == .surveyIsCompleted) {
+                    Spacer()
+                    
+                    Text("That's it!")
+                        .font(.sfProTextRegular(size: 34))
+                        .foregroundStyle(.white)
+                    Text("Thanks for your time.")
+                        .font(.sfProTextRegular(size: 34))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Spacer()
+                    InterviewSummaryButtonView(onNext: onNext)
+                        .padding(.bottom, 30)
+                }
+                else if (homeScreenState == .preparing
                     || homeScreenState == .introduction
                     || homeScreenState == .countdown
                     || homeScreenState == .playingQuestion
@@ -74,6 +88,7 @@ struct TransitionView: View {
                          || homeScreenState == .userIsReady
                          || homeScreenState == .answering)
                         && isListening) {
+                        Spacer()
                         Spacer()
                         
                         Text("I'm listening...")
@@ -165,7 +180,7 @@ class AVPlayerDelegate: NSObject, AVAudioPlayerDelegate {
 }
 
 #Preview {
-    @Previewable @State var homeScreenState: HomeScreenViewState = .countdown
+    @Previewable @State var homeScreenState: HomeScreenViewState = .surveyIsCompleted
     @Previewable @State var isListening: Bool = false
     
     TransitionView(

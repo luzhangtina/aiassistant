@@ -12,17 +12,13 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            if (currentPage == 99) {
-                HomeScreenView()
+            LightBackgroundBackgroundView()
+            
+            VStack(alignment: .leading, spacing: 10) {
+                currentPageView()
+                bottomButton()
             }
-            else {
-                OnboardingBackgroundView()
-                VStack(alignment: .leading, spacing: 10) {
-                    currentPageView()
-                    bottomButton()
-                }
-                .padding(.horizontal, 32)
-            }
+            .padding(.horizontal, 32)
         }
     }
     
@@ -37,7 +33,7 @@ struct OnboardingView: View {
             case 2:
                 InteractiveExperiencePageView(onSkip: goHome)
             case 3:
-                YouAreInControlPageView ()
+                YouAreInControlPageView()
             default:
                 EmptyView()
             }
@@ -63,9 +59,7 @@ struct OnboardingView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: 48)
             .contentShape(Rectangle())
-        case 1:
-            NextButtonView(onNext: goToNextPage)
-        case 2:
+        case 1, 2:
             NextButtonView(onNext: goToNextPage)
         case 3:
             NextButtonView(onNext: goHome)
@@ -75,11 +69,17 @@ struct OnboardingView: View {
     }
     
     private func goToNextPage() {
-        withAnimation { currentPage = currentPage + 1 }
+        withAnimation { currentPage += 1 }
     }
     
     private func goHome() {
-        withAnimation { currentPage = 99 }
+        guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow }) else { return }
+        
+        window.rootViewController = UIHostingController(rootView: HomeScreenView())
+        window.makeKeyAndVisible()
     }
 }
 

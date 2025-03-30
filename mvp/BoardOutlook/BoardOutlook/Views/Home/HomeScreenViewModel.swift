@@ -23,7 +23,7 @@ class HomeScreenViewModel {
     private var recordingURL: URL?
     
     func establishWebSocketConnection() {
-        guard let url = URL(string: "ws://localhost:7001/ws") else { return }
+        guard let url = URL(string: "ws://localhost:8001/ws") else { return }
         
         let session = URLSession(configuration: .default)
         webSocketTask = session.webSocketTask(with: url)
@@ -158,7 +158,7 @@ class HomeScreenViewModel {
     }
     
     func startInterview(for user: User) async {
-        guard let url = URL(string: "http://localhost:7001/api/init") else { return }
+        guard let url = URL(string: "http://localhost:8001/api/init") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
