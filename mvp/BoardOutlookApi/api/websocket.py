@@ -22,6 +22,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
             print(f"STT result is : {transcript}")
 
+            user_text_answer = transcript['final_result'] 
+            if not user_text_answer:
+                user_text_answer = transcript['partial_result']
+
             try:
                 user_context = client_context_store.get_context(client_id)
                 context = user_context['context']
@@ -38,12 +42,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 is_survey_completed = False
 
-                user_responses = [
-                    "I believe the board plays a crucial role in shaping and overseeing our long-term strategy. They dedicate time during quarterly meetings specifically to strategic discussions, going beyond routine performance reviews. This ensures that we’re not just reacting to short-term results but actively planning for sustainable growth. The board consistently challenges management’s proposals by asking thought-provoking questions and encouraging alternative perspectives. For example, during our recent expansion planning, they pushed us to consider emerging market risks and diversify our approach, leading to a more resilient strategy. Additionally, they stay informed on external factors — from economic trends to industry disruptions — through regular briefings from experts. This proactive approach helps the organization stay ahead of potential risks and seize new opportunities. Overall, their involvement ensures our strategy remains forward-thinking, adaptable, and aligned with our mission."
-                ]
+                # user_responses = [
+                #     "I believe the board plays a crucial role in shaping and overseeing our long-term strategy. They dedicate time during quarterly meetings specifically to strategic discussions, going beyond routine performance reviews. This ensures that we’re not just reacting to short-term results but actively planning for sustainable growth. The board consistently challenges management’s proposals by asking thought-provoking questions and encouraging alternative perspectives. For example, during our recent expansion planning, they pushed us to consider emerging market risks and diversify our approach, leading to a more resilient strategy. Additionally, they stay informed on external factors — from economic trends to industry disruptions — through regular briefings from experts. This proactive approach helps the organization stay ahead of potential risks and seize new opportunities. Overall, their involvement ensures our strategy remains forward-thinking, adaptable, and aligned with our mission.",
+                #     "Yes, the board has a clear view of both potential risks and opportunities that could impact the organization’s strategic direction. They don’t just focus on the immediate benefits of any proposal; instead, they assess the long-term implications and sustainability. For example, during our recent expansion plans, the board didn’t just look at the short-term revenue potential; they carefully considered geopolitical risks, the volatility of emerging markets, and technological disruptions. They also encouraged us to evaluate opportunities for innovation and partnerships in those markets, which led to a more diversified risk management strategy. Moreover, they regularly ask management to conduct detailed risk assessments and present contingency plans to ensure we’re prepared for any unexpected shifts in the market or regulatory environment. This broader perspective allows the organization to stay agile and pivot when necessary, ensuring our strategy remains aligned with both external changes and our long-term objectives."
+                # ]
                 
                 # Prepare AI response
-                ai_messages = compose_ai_messages(False, "", user_responses[number_of_question_in_progress-1], chat_history)
+                # ai_messages = compose_ai_messages(False, "", user_responses[number_of_question_in_progress-1], chat_history)
+                ai_messages = compose_ai_messages(False, "", user_text_answer, chat_history)
                 ai_response = get_ai_response(ai_messages)
 
                 user_answer_count = len([msg for msg in ai_messages if msg["role"] == "user"]) - 1

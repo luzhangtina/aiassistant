@@ -40,16 +40,21 @@ def get_text_from_vosk(audio_base64):
     recognizer = KaldiRecognizer(vosk_model, wf.getframerate())
     
     data = wf.readframes(wf.getnframes())
-    
+
     final_result = None
     partial_result = None
 
-    # If the recognizer has a final result
-    if recognizer.AcceptWaveform(data):
-        final_result = json.loads(recognizer.Result())['text']
-    
-    # Get the current partial result
-    partial_result = json.loads(recognizer.PartialResult())['partial']
+    try:
+        # If the recognizer has a final result
+        if recognizer.AcceptWaveform(data):
+            final_result = json.loads(recognizer.Result())['text']
+        else:
+            # Get the current partial result
+            partial_result = json.loads(recognizer.PartialResult())['partial']
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
     # Return both results (final and partial)
     return {"final_result": final_result, "partial_result": partial_result}
