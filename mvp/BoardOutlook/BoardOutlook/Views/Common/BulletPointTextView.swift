@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BulletPointTextView: View {
     var text: String
+    var fontSize: CGFloat = 16
     
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -17,7 +18,7 @@ struct BulletPointTextView: View {
                 .frame(width: 6, height: 6)
             
             Text(text)
-                .font(.sfProTextRegular(size: 16))
+                .font(.sfProTextRegular(size: fontSize))
                 .fontWeight(.regular)
                 .multilineTextAlignment(.leading)
             

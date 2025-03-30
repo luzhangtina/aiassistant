@@ -47,10 +47,10 @@ struct TransitionView: View {
                     Spacer()
                     
                     Text("That's it!")
-                        .font(.sfProTextRegular(size: 34))
+                        .font(.sfProTextRegular(size: 30))
                         .foregroundStyle(.white)
                     Text("Thanks for your time.")
-                        .font(.sfProTextRegular(size: 34))
+                        .font(.sfProTextRegular(size: 30))
                         .foregroundStyle(.white)
                     Spacer()
                     Spacer()

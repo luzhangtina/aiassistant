@@ -15,13 +15,8 @@ struct WelcomePageView: View {
         ) {
             Spacer()
         
-            HStack {
-                Text("BoardOutlook")
-                    .font(.oxanium(size: 22.5))
-                    .fontWeight(.semibold)
-                Image(systemName: "sparkles")
-            }
-            .padding(.bottom, 30)
+            BoardOutlookLogoView()
+                .padding(.bottom, 30)
             
             Text("Welcome to the BoardOutlook Interview")
                 .font(.darkerGrotesque(size: 40))
