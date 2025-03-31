@@ -63,6 +63,9 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
+                                // Initialize WebSocket connection
+                                homeScreenViewModel.establishWebSocketConnection()
+                                
                                 homeScreenViewModel.currentState = .microphoneSetUp
                                 homeScreenViewModel.currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
                             }
@@ -82,7 +85,8 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                _ = homeScreenViewModel.stopRecording()
+                                homeScreenViewModel.stopRecording()
+                                
                                 homeScreenViewModel.currentState = .introduction
                                 homeScreenViewModel.currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
                             }
@@ -110,10 +114,7 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                let audioData = homeScreenViewModel.stopRecording()
-
-                                // Initialize WebSocket connection
-                                homeScreenViewModel.establishWebSocketConnection()
+                                homeScreenViewModel.stopRecording()
                                 
                                 // First, change to countdown state
                                 homeScreenViewModel.currentState = .countdown
@@ -173,8 +174,7 @@ struct HomeScreenView : View {
                             homeScreenState: $homeScreenViewModel.currentState,
                             isListening: $homeScreenViewModel.isListening,
                             onNext: {
-                                let audioData = homeScreenViewModel.stopRecording()
-                                homeScreenViewModel.sendAudioViaWebSocket(audioData)
+                                homeScreenViewModel.stopRecording()
                                 homeScreenViewModel.currentState = .waitingForResponse
                             }
                         )
