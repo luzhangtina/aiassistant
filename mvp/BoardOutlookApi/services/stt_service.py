@@ -31,10 +31,6 @@ def load_vosk_model():
 
 def get_text_from_vosk(audio_base64):
     # Decode Base64
-
-    print(audio_base64)
-    print("\n\n")
-    
     audio_data = base64.b64decode(audio_base64)
 
     audio_wav = io.BytesIO(audio_data)

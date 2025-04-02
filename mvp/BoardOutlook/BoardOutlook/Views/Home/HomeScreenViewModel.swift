@@ -19,16 +19,12 @@ class HomeScreenViewModel {
     var user: User = User(clientId: "client1", name: "Harshad")
     
     private var webSocketTask: URLSessionWebSocketTask?
-    private var audioRecorder: AVAudioRecorder?
-    private var recordingURL: URL?
     
     private var audioEngine: AVAudioEngine?
     private var inputNode: AVAudioInputNode?
     private var audioFormat: AVAudioFormat?
     
     private var sentFirstChunk = false
-    private var totalBytesSent = 0
-    private var audioChunks = [Data]()
     
     func establishWebSocketConnection() {
         guard let url = URL(string: "ws://localhost:8001/ws") else { return }
@@ -93,50 +89,154 @@ class HomeScreenViewModel {
             print("Failed to decode server message: \(error)")
         }
     }
+
+    func startRecording() {
+        let audioSession = AVAudioSession.sharedInstance()
+        audioEngine = AVAudioEngine()
+        
+        sentFirstChunk = false
+        
+        do {
+            // Request permission and set up audio session
+            try audioSession.setCategory(.playAndRecord, mode: .voiceChat)  // Changed to .voiceChat mode
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            
+            if #available(iOS 13.0, *) {
+                try audioSession.setAllowHapticsAndSystemSoundsDuringRecording(true)
+            }
+            
+            guard let engine = audioEngine else {
+                print("Audio engine not initialized")
+                return
+            }
+            
+            inputNode = engine.inputNode
+            
+            // Create the format we want: 16kHz mono PCM
+            let targetFormat = AVAudioFormat(
+                commonFormat: .pcmFormatInt16,
+                sampleRate: 16000.0,
+                channels: 1,
+                interleaved: true
+            )
+            
+            guard let targetFormat = targetFormat else {
+                print("Failed to create target format")
+                return
+            }
+            
+            // Get native format from input device
+            let nativeFormat = inputNode?.outputFormat(forBus: 0)
+            
+            guard let nativeFormat = nativeFormat else {
+                print("Failed to get native format")
+                return
+            }
+            
+            print("Native format: \(nativeFormat)")
+            print("Target format: \(targetFormat)")
+            
+            // Enable noise suppression on the input node
+            if let inputNode = inputNode, let audioUnit = inputNode.audioUnit {
+                var enableFlag: UInt32 = 1
+                
+                // Define the property IDs for voice processing
+                // 1 = kAUVoiceIOProperty_VoiceProcessingEnableAGC (Auto Gain Control)
+                // 3 = kAUVoiceIOProperty_VoiceProcessingEnableNS (Noise Suppression)
+                let AGCPropertyID: AudioUnitPropertyID = 1
+                let NSPropertyID: AudioUnitPropertyID = 3
+                
+                // Enable automatic gain control (AGC)
+                AudioUnitSetProperty(
+                    audioUnit,
+                    AGCPropertyID,
+                    kAudioUnitScope_Global,
+                    0,
+                    &enableFlag,
+                    UInt32(MemoryLayout<UInt32>.size)
+                )
+                
+                // Enable noise suppression (NS)
+                AudioUnitSetProperty(
+                    audioUnit,
+                    NSPropertyID,
+                    kAudioUnitScope_Global,
+                    0,
+                    &enableFlag,
+                    UInt32(MemoryLayout<UInt32>.size)
+                )
+                
+                print("Noise suppression enabled")
+            }
+            
+            // Check if conversion is needed
+            var needsConversion = true
+            if nativeFormat.sampleRate == targetFormat.sampleRate &&
+               nativeFormat.channelCount == targetFormat.channelCount &&
+               nativeFormat.commonFormat == targetFormat.commonFormat {
+                needsConversion = false
+                print("No conversion needed")
+            }
+            
+            // Create a converter if needed
+            let converter = needsConversion ? AVAudioConverter(from: nativeFormat, to: targetFormat) : nil
+                    
+            // Install a tap on the input node
+            inputNode?.installTap(onBus: 0, bufferSize: 1024, format: nativeFormat) { [weak self] buffer, time in
+                guard let self = self else { return }
+                
+                var pcmData: Data?
+                
+                if needsConversion, let converter = converter {
+                    // Convert to our target format
+                    guard let targetBuffer = AVAudioPCMBuffer(
+                        pcmFormat: targetFormat,
+                        frameCapacity: AVAudioFrameCount(targetFormat.sampleRate / nativeFormat.sampleRate * Double(buffer.frameLength))
+                    ) else {
+                        print("Failed to create target buffer")
+                        return
+                    }
+                    
+                    var error: NSError?
+                    
+                    let status = converter.convert(to: targetBuffer, error: &error) { inNumPackets, outStatus in
+                        outStatus.pointee = .haveData
+                        return buffer
+                    }
+                    
+                    if let error = error {
+                        print("Conversion error: \(error)")
+                        return
+                    }
+                    
+                    if status == .error {
+                        print("Conversion failed with status: \(status)")
+                        return
+                    }
+                    
+                    // Extract PCM data from the converted buffer
+                    pcmData = self.extractPCMData(from: targetBuffer)
+                } else {
+                    // No conversion needed, use the original buffer
+                    pcmData = self.extractPCMData(from: buffer)
+                }
+                
+                // Store the PCM data for testing and verification
+                if let data = pcmData {
+                    self.sendAudioChunk(data)
+                }
+            }
+            
+            // Start the audio engine
+            engine.prepare()
+            try engine.start()
+
+            print("Recording started successfully")
+        } catch {
+            print("Error starting recording: \(error)")
+        }
+    }
     
-    // Start recording audio
-//    func startRecording() {
-//        let audioSession = AVAudioSession.sharedInstance()
-//        
-//        do {
-//            try audioSession.setCategory(.record, mode: .default)
-//            try audioSession.setActive(true)
-//            
-//            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-//            recordingURL = documentsPath.appendingPathComponent("recording.wav")
-//            
-//            let settings = [
-//                AVFormatIDKey: Int(kAudioFormatLinearPCM),
-//                AVSampleRateKey: 16000.0,  // Sample rate for speech
-//                AVNumberOfChannelsKey: 1,   // Mono channel
-//                AVLinearPCMBitDepthKey: 16, // 16-bit depth
-//                AVLinearPCMIsBigEndianKey: false,
-//                AVLinearPCMIsFloatKey: false
-//            ] as [String : Any]
-//            
-//            audioRecorder = try AVAudioRecorder(url: recordingURL!, settings: settings)
-//            audioRecorder?.record()
-//
-//        } catch {
-//            print("Failed to start recording: \(error)")
-//        }
-//    }
-    
-    // Stop recording and return the audio data
-//    func stopRecording() -> Data? {
-//        audioRecorder?.stop()
-//        isListening = false
-//        
-//        guard let recordingURL = recordingURL else { return nil }
-//        
-//        do {
-//            let audioData = try Data(contentsOf: recordingURL)
-//            return audioData
-//        } catch {
-//            print("Failed to load audio data: \(error)")
-//            return nil
-//        }
-//    }
     // Properly create a WAV header with accurate values
     private func createWavHeader(sampleRate: Int, bitsPerSample: Int, channels: Int, dataSize: Int) -> Data {
         var header = Data(capacity: 44)
@@ -195,176 +295,6 @@ class HomeScreenViewModel {
         return header
     }
 
-    // Create a test file to verify our recording setup works
-    private func createTestWavFile() {
-        // Collect all audio data from chunks
-        var allAudioData = Data()
-        
-        // If we have accumulated chunks, use them
-        if !audioChunks.isEmpty {
-            for chunk in audioChunks {
-                allAudioData.append(chunk)
-            }
-        } else {
-            // Generate a simple tone if no data (for testing)
-            let sampleRate = 16000
-            let duration = 2.0 // 2 seconds
-            let sampleCount = Int(duration * Double(sampleRate))
-            
-            for i in 0..<sampleCount {
-                // Generate a 440Hz sine wave
-                let time = Double(i) / Double(sampleRate)
-                let amplitude = 0.5 * sin(2.0 * .pi * 440.0 * time)
-                
-                // Convert to 16-bit PCM
-                let sample = Int16(amplitude * 32767.0)
-                let sampleData = withUnsafeBytes(of: sample.littleEndian) { Data($0) }
-                allAudioData.append(sampleData)
-            }
-        }
-        
-        // Create a proper WAV header for the complete file
-        let header = createWavHeader(
-            sampleRate: 16000,
-            bitsPerSample: 16,
-            channels: 1,
-            dataSize: allAudioData.count
-        )
-        
-        // Combine header with audio data
-        var wavData = header
-        wavData.append(allAudioData)
-        
-        // Save to a file in the Documents directory
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let filePath = documentsPath.appendingPathComponent("test_recording.wav")
-        
-        do {
-            try wavData.write(to: filePath)
-            print("Test WAV file saved to: \(filePath)")
-        } catch {
-            print("Failed to save test WAV file: \(error)")
-        }
-    }
-
-    // Modified startRecording function with verified audio capture
-    func startRecording() {
-        let audioSession = AVAudioSession.sharedInstance()
-        audioEngine = AVAudioEngine()
-        
-        // Clear previous data
-        audioChunks.removeAll()
-        sentFirstChunk = false
-        totalBytesSent = 0
-        
-        do {
-            // Request permission and set up audio session
-            try audioSession.setCategory(.playAndRecord, mode: .default)
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-            
-            guard let engine = audioEngine else {
-                print("Audio engine not initialized")
-                return
-            }
-            
-            inputNode = engine.inputNode
-            
-            // Create the format we want: 16kHz mono PCM
-            let targetFormat = AVAudioFormat(
-                commonFormat: .pcmFormatInt16,
-                sampleRate: 16000.0,
-                channels: 1,
-                interleaved: true
-            )
-            
-            guard let targetFormat = targetFormat else {
-                print("Failed to create target format")
-                return
-            }
-            
-            // Get native format from input device
-            let nativeFormat = inputNode?.outputFormat(forBus: 0)
-            
-            guard let nativeFormat = nativeFormat else {
-                print("Failed to get native format")
-                return
-            }
-            
-            print("Native format: \(nativeFormat)")
-            print("Target format: \(targetFormat)")
-            
-            // Check if conversion is needed
-            var needsConversion = true
-            if nativeFormat.sampleRate == targetFormat.sampleRate &&
-               nativeFormat.channelCount == targetFormat.channelCount &&
-               nativeFormat.commonFormat == targetFormat.commonFormat {
-                needsConversion = false
-                print("No conversion needed")
-            }
-            
-            // Create a converter if needed
-            let converter = needsConversion ? AVAudioConverter(from: nativeFormat, to: targetFormat) : nil
-            
-            // Install a tap on the input node
-            inputNode?.installTap(onBus: 0, bufferSize: 1024, format: nativeFormat) { [weak self] buffer, time in
-                guard let self = self else { return }
-                
-                var pcmData: Data?
-                
-                if needsConversion, let converter = converter {
-                    // Convert to our target format
-                    guard let targetBuffer = AVAudioPCMBuffer(
-                        pcmFormat: targetFormat,
-                        frameCapacity: AVAudioFrameCount(targetFormat.sampleRate / nativeFormat.sampleRate * Double(buffer.frameLength))
-                    ) else {
-                        print("Failed to create target buffer")
-                        return
-                    }
-                    
-                    var error: NSError?
-                    
-                    let status = converter.convert(to: targetBuffer, error: &error) { inNumPackets, outStatus in
-                        outStatus.pointee = .haveData
-                        return buffer
-                    }
-                    
-                    if let error = error {
-                        print("Conversion error: \(error)")
-                        return
-                    }
-                    
-                    if status == .error {
-                        print("Conversion failed with status: \(status)")
-                        return
-                    }
-                    
-                    // Extract PCM data from the converted buffer
-                    pcmData = self.extractPCMData(from: targetBuffer)
-                } else {
-                    // No conversion needed, use the original buffer
-                    pcmData = self.extractPCMData(from: buffer)
-                }
-                
-                // Store the PCM data for testing and verification
-                if let data = pcmData {
-                    self.audioChunks.append(data)
-                    self.totalBytesSent += data.count
-                    
-                    // Send via WebSocket
-                    self.sendAudioChunk(data)
-                }
-            }
-            
-            // Start the audio engine
-            engine.prepare()
-            try engine.start()
-
-            print("Recording started successfully")
-        } catch {
-            print("Error starting recording: \(error)")
-        }
-    }
-
     // Extract PCM data from a buffer
     private func extractPCMData(from buffer: AVAudioPCMBuffer) -> Data? {
         // For PCM int16 format
@@ -384,13 +314,6 @@ class HomeScreenViewModel {
             data.append(UnsafeBufferPointer(start: samples, count: frameLength))
         }
         
-        // Debug - log some characteristics
-        if frameLength > 0 {
-            let first = channelData[0][0]
-            let last = channelData[0][frameLength-1]
-            print("Frame count: \(frameLength), First: \(first), Last: \(last), Size: \(data.count) bytes")
-        }
-        
         return data
     }
 
@@ -398,7 +321,7 @@ class HomeScreenViewModel {
     private func sendAudioChunk(_ pcmData: Data) {
         // If this is the first chunk, we need to create and send a WAV header
         var dataToSend = Data()
-        
+        var isFirstChunk = false
         if !sentFirstChunk {
             print("Sending first chunk with WAV header")
             
@@ -413,6 +336,7 @@ class HomeScreenViewModel {
             
             dataToSend.append(header)
             sentFirstChunk = true
+            isFirstChunk = true
         }
         
         // Add the PCM data
@@ -430,7 +354,7 @@ class HomeScreenViewModel {
             name: user.name,
             type: type,
             audioBase64: base64String,
-            isFirstChunk: !sentFirstChunk, // Will be true for the first chunk
+            isFirstChunk: isFirstChunk,
             isLastChunk: false
         )
         
@@ -459,10 +383,7 @@ class HomeScreenViewModel {
         // Stop the engine
         engine.stop()
         
-        print("Recording stopped. Total bytes recorded: \(totalBytesSent)")
-        
-        // Create a test WAV file to verify the recording worked
-        createTestWavFile()
+        print("Recording stopped.")
         
         // Send final message
         flushRemainingAudio()
@@ -486,7 +407,7 @@ class HomeScreenViewModel {
         do {
             let jsonData = try JSONEncoder().encode(userAnswer)
             if let jsonString = String(data: jsonData, encoding: .utf8) {
-                webSocketTask?.send(.string(jsonString)) { [weak self] error in
+                webSocketTask?.send(.string(jsonString)) { error in
                     if let error = error {
                         print("Failed to send final message: \(error)")
                     } else {
@@ -509,7 +430,7 @@ class HomeScreenViewModel {
         return "InterviewAnswer"
     }
     
-    func startInterview(for user: User) async {
+    func startInterview() async {
         guard let url = URL(string: "http://localhost:8001/api/init") else { return }
         
         var request = URLRequest(url: url)

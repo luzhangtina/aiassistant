@@ -122,8 +122,7 @@ struct HomeScreenView : View {
 
                                 // Then asynchronously start the interview
                                 Task {
-                                    let user = User(clientId: "client1", name: "Harshad")
-                                    await homeScreenViewModel.startInterview(for: user)
+                                    await homeScreenViewModel.startInterview()
                                 }
                             }
                         )

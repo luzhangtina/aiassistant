@@ -67,18 +67,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     complete_audio = bytearray(updated_header) + audio_buffers[client_id]
                     
                     complete_base64_audio = base64.b64encode(complete_audio).decode('utf-8')
-
-                    # with tempfile.NamedTemporaryFile(delete=False, suffix='.wav', mode='wb') as temp_file:
-                    #     temp_file.write(complete_audio)
-                    #     temp_file_path = temp_file.name
-
-                    # print(f"WAV audio for client {client_id} saved in temp file: {temp_file_path}")
-
-                    # with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
-                    #     temp_file.write(complete_base64_audio)
-                    #     temp_file_path = temp_file.name
-                    
-                    # print(f"Audio data for client {client_id} saved in temp file: {temp_file_path}")
                     
                     if client_id in audio_buffers:
                         del audio_buffers[client_id]
@@ -245,41 +233,6 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         print(f"Client disconnected: {websocket.client}")
 
-
-def print_wav_header_info(header):
-    """Print information from a WAV header for debugging"""
-    try:
-        if len(header) < 44:
-            print(f"Invalid WAV header length: {len(header)}")
-            return
-            
-        riff = header[0:4].decode('ascii')
-        # chunk_size = int.from_bytes(header[4:8], byteorder='little')
-        wave = header[8:12].decode('ascii')
-        fmt = header[12:16].decode('ascii')
-        # subchunk1_size = int.from_bytes(header[16:20], byteorder='little')
-        audio_format = int.from_bytes(header[20:22], byteorder='little')
-        num_channels = int.from_bytes(header[22:24], byteorder='little')
-        sample_rate = int.from_bytes(header[24:28], byteorder='little')
-        byte_rate = int.from_bytes(header[28:32], byteorder='little')
-        block_align = int.from_bytes(header[32:34], byteorder='little')
-        bits_per_sample = int.from_bytes(header[34:36], byteorder='little')
-        data = header[36:40].decode('ascii')
-        data_size = int.from_bytes(header[40:44], byteorder='little')
-        
-        print(f"WAV Header: {riff} {wave} {fmt}")
-        print(f"Format: {audio_format} (1=PCM)")
-        print(f"Channels: {num_channels}")
-        print(f"Sample Rate: {sample_rate}")
-        print(f"Bits per Sample: {bits_per_sample}")
-        print(f"Byte Rate: {byte_rate}")
-        print(f"Block Align: {block_align}")
-        print(f"Data: {data}")
-        print(f"Data Size: {data_size}")
-    except Exception as e:
-        print(f"Error parsing WAV header: {e}")
-        print(f"Raw header: {header}")
-
 def create_default_wav_header(data_size):
     """Create a default WAV header for 16kHz, 16-bit, mono audio"""
     header = bytearray(44)
@@ -338,32 +291,3 @@ def update_wav_header_size(header, data_size):
     updated[40:44] = data_size.to_bytes(4, byteorder='little')
     
     return updated
-
-def verify_wav_file(file_path):
-    """Verify that a WAV file is valid and readable"""
-    try:
-        with wave.open(file_path, 'rb') as wav_file:
-            channels = wav_file.getnchannels()
-            sample_width = wav_file.getsampwidth()
-            frame_rate = wav_file.getframerate()
-            n_frames = wav_file.getnframes()
-            duration = n_frames / frame_rate
-            
-            print(f"WAV file verification:")
-            print(f"  - Channels: {channels}")
-            print(f"  - Sample width: {sample_width} bytes")
-            print(f"  - Frame rate: {frame_rate} Hz")
-            print(f"  - Number of frames: {n_frames}")
-            print(f"  - Duration: {duration:.2f} seconds")
-            
-            # Read a few frames to ensure data is actually there
-            first_frames = wav_file.readframes(min(100, n_frames))
-            if len(first_frames) > 0:
-                print(f"  - First frame data available: {len(first_frames)} bytes")
-            else:
-                print("  - WARNING: No frame data available")
-                
-            return True
-    except Exception as e:
-        print(f"WAV file verification failed: {e}")
-        return False
