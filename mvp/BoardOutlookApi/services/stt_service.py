@@ -30,27 +30,23 @@ def load_vosk_model():
         vosk_model = Model(VOSK_MODEL_PATH)        
 
 def get_text_from_vosk(audio_base64):
-    # Decode Base64
+    # Decode Base64 to get raw PCM data
     audio_data = base64.b64decode(audio_base64)
 
-    audio_wav = io.BytesIO(audio_data)
+    # Create a recognizer instance with sample rate 16kHz
+    recognizer = KaldiRecognizer(vosk_model, 16000)
 
-    wf = wave.open(audio_wav, "rb")
-
-    recognizer = KaldiRecognizer(vosk_model, wf.getframerate())
-    
-    data = wf.readframes(wf.getnframes())
-
+    # Process the audio data
     final_result = None
     partial_result = None
 
     try:
         # If the recognizer has a final result
-        if recognizer.AcceptWaveform(data):
-            final_result = json.loads(recognizer.Result())['text']
+        if recognizer.AcceptWaveform(audio_data):
+            final_result = json.loads(recognizer.Result()).get('text', '')
         else:
             # Get the current partial result
-            partial_result = json.loads(recognizer.PartialResult())['partial']
+            partial_result = json.loads(recognizer.PartialResult()).get('partial', '')
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
     except Exception as e:

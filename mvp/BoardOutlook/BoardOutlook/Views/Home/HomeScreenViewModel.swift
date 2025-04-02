@@ -237,64 +237,6 @@ class HomeScreenViewModel {
         }
     }
     
-    // Properly create a WAV header with accurate values
-    private func createWavHeader(sampleRate: Int, bitsPerSample: Int, channels: Int, dataSize: Int) -> Data {
-        var header = Data(capacity: 44)
-        
-        // "RIFF" chunk descriptor
-        header.append(contentsOf: "RIFF".utf8)
-        
-        // Chunk size (file size - 8 bytes)
-        let fileSize = dataSize + 36
-        let fileSizeData = withUnsafeBytes(of: UInt32(fileSize).littleEndian) { Data($0) }
-        header.append(fileSizeData)
-        
-        // Format ("WAVE")
-        header.append(contentsOf: "WAVE".utf8)
-        
-        // "fmt " sub-chunk
-        header.append(contentsOf: "fmt ".utf8)
-        
-        // Sub-chunk size (16 for PCM)
-        let subchunk1SizeData = withUnsafeBytes(of: UInt32(16).littleEndian) { Data($0) }
-        header.append(subchunk1SizeData)
-        
-        // Audio format (1 for PCM)
-        let audioFormatData = withUnsafeBytes(of: UInt16(1).littleEndian) { Data($0) }
-        header.append(audioFormatData)
-        
-        // Number of channels
-        let channelsData = withUnsafeBytes(of: UInt16(channels).littleEndian) { Data($0) }
-        header.append(channelsData)
-        
-        // Sample rate
-        let sampleRateData = withUnsafeBytes(of: UInt32(sampleRate).littleEndian) { Data($0) }
-        header.append(sampleRateData)
-        
-        // Byte rate (SampleRate * NumChannels * BitsPerSample/8)
-        let byteRate = sampleRate * channels * bitsPerSample / 8
-        let byteRateData = withUnsafeBytes(of: UInt32(byteRate).littleEndian) { Data($0) }
-        header.append(byteRateData)
-        
-        // Block align (NumChannels * BitsPerSample/8)
-        let blockAlign = channels * bitsPerSample / 8
-        let blockAlignData = withUnsafeBytes(of: UInt16(blockAlign).littleEndian) { Data($0) }
-        header.append(blockAlignData)
-        
-        // Bits per sample
-        let bitsPerSampleData = withUnsafeBytes(of: UInt16(bitsPerSample).littleEndian) { Data($0) }
-        header.append(bitsPerSampleData)
-        
-        // "data" sub-chunk
-        header.append(contentsOf: "data".utf8)
-        
-        // Sub-chunk size (data size)
-        let subchunk2SizeData = withUnsafeBytes(of: UInt32(dataSize).littleEndian) { Data($0) }
-        header.append(subchunk2SizeData)
-        
-        return header
-    }
-
     // Extract PCM data from a buffer
     private func extractPCMData(from buffer: AVAudioPCMBuffer) -> Data? {
         // For PCM int16 format
@@ -324,17 +266,6 @@ class HomeScreenViewModel {
         var isFirstChunk = false
         if !sentFirstChunk {
             print("Sending first chunk with WAV header")
-            
-            // We don't know the final size, so use a placeholder
-            // Clients will typically update this with the correct size when writing the file
-            let header = createWavHeader(
-                sampleRate: 16000,
-                bitsPerSample: 16,
-                channels: 1,
-                dataSize: 10 * 1024 * 1024  // 10MB placeholder
-            )
-            
-            dataToSend.append(header)
             sentFirstChunk = true
             isFirstChunk = true
         }

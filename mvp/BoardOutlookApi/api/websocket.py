@@ -37,34 +37,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 if user_audio_data_base64:
                     chunk_data = base64.b64decode(user_audio_data_base64)
-
+                    audio_buffers[client_id].extend(chunk_data)
                     if data.get("isFirstChunk", True):
                         print(f"Received first chunk with WAV header from {client_id}")
-                        
-                        # The first 44 bytes are the WAV header
-                        wav_header = chunk_data[:44]
-                        wav_headers[client_id] = wav_header
-                        
-                        # The rest is audio data
-                        audio_data = chunk_data[44:]
-                        audio_buffers[client_id].extend(audio_data)
-                    else:
-                        # For subsequent chunks, just add the audio data
-                        audio_buffers[client_id].extend(chunk_data)
 
                 # Check if the chunked audio is complete (you may want to add your own condition here)
                 if data.get('isLastChunk', True):
-                    # Once all chunks are received, decode and process the complete base64 audio buffer
-                    wav_header = wav_headers.get(client_id)
-                    if not wav_header:
-                        print("WARNING: No WAV header received, creating a default one")
-                        wav_header = create_default_wav_header(len(audio_buffers[client_id]))
-                    
-                    # Update the header with the correct data size
-                    updated_header = update_wav_header_size(wav_header, len(audio_buffers[client_id]))
-                    
-                    # Combine header and audio data
-                    complete_audio = bytearray(updated_header) + audio_buffers[client_id]
+                    complete_audio = audio_buffers[client_id]
                     
                     complete_base64_audio = base64.b64encode(complete_audio).decode('utf-8')
                     
