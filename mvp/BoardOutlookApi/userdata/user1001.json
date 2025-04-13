@@ -1,0 +1,32 @@
+{
+    "userId": "user1001",
+    "metadata": {
+        "name": null
+    },
+    "interviews": [
+        {
+            "interviewId": "interview_001",
+            "state": "ongoing",
+            "metadata": {
+                "title": "Board Evaluation",
+                "estimatedDuration": 30,
+                "durationUnit": "minute",
+                "questions": [
+                    {
+                        "number": 1,
+                        "question": "How effectively does the board shape and oversee the organization’s long-term strategy?",
+                        "description": "Assess the board’s role in guiding, challenging, and supporting strategy while ensuring long-term success. Does the board allocate sufficient time to long-term strategic discussions rather than just reviewing management updates? How effectively does the board challenge and refine management’s strategic proposals? Does the board have a clear view of external trends, risks, and opportunities shaping strategy?"
+                    }
+                ]
+            },
+            "progress": {
+                "currentQuestion": "How effectively does the board shape and oversee the organization’s long-term strategy?",
+                "currentQuestionNumber": 1,
+                "totalQuestions": 1,
+                "startedAt": "2025-04-13T04:35:08.093847Z",
+                "durationSeconds": 0
+            },
+            "summaries": []
+        }
+    ]
+}

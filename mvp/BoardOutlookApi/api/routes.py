@@ -1,12 +1,16 @@
 # routes.py
 from fastapi import APIRouter, HTTPException
-from models.request_models import InitRequest, TranscriptRequest
+from fastapi.responses import JSONResponse
+from models.request_models import InitRequest
 from services.tts_service import get_audio_from_edge
 from data.questions import load_survey, get_question_list, get_survey_data
 from data.client_context_store import client_context_store
 from services.prompt_service import create_system_prompt
 from services.ai_service import compose_ai_messages, get_ai_response
 from data.magic_word import magic_word
+from models.loading_interview import LoadingInterviewRequest, LoadingInterviewResponse
+from models.error_response import ErrorResponse
+from services.loading_interview_service import load_interview_for_user
 
 router = APIRouter()
 
@@ -82,3 +86,14 @@ async def init_api(request: InitRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/api/loadingInterview", response_model=LoadingInterviewResponse, responses={400: {"model": ErrorResponse}})
+async def loading_interview(request: LoadingInterviewRequest):
+    response = load_interview_for_user(request.user_id, request.interview_id)
+    if response:
+        return response
+    
+    return JSONResponse(
+        status_code=400,
+        content=ErrorResponse(status="error", message="Interview not found", detail="The requested interview ID could not be found for the given user.")
+    )
