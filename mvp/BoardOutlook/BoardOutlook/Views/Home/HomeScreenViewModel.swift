@@ -265,7 +265,7 @@ class HomeScreenViewModel {
         var dataToSend = Data()
         var isFirstChunk = false
         if !sentFirstChunk {
-            print("Sending first chunk with WAV header")
+            print("Sending first PCM chunk")
             sentFirstChunk = true
             isFirstChunk = true
         }

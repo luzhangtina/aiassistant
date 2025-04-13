@@ -2,7 +2,6 @@
 from fastapi import APIRouter, HTTPException
 from models.request_models import InitRequest, TranscriptRequest
 from services.tts_service import get_audio_from_edge
-from services.stt_service import get_text_from_vosk
 from data.questions import load_survey, get_question_list, get_survey_data
 from data.client_context_store import client_context_store
 from services.prompt_service import create_system_prompt
@@ -79,26 +78,6 @@ async def init_api(request: InitRequest):
             "progress": context['progress'],
             "currentQuestion": context['current_question'],
             "audioBase64": audio_base64
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-
-@router.post("/api/transcript")
-async def init_api(request: TranscriptRequest):
-    try:
-        audio_base64 = request.audio
-
-        # Get audio of AI response
-        transcript = get_text_from_vosk(audio_base64)
- 
-        # Return response
-        return {
-            "transcript": {
-                "finalResult": transcript['final_result'],
-                "partialResult": transcript['partial_result']
-            }
         }
 
     except Exception as e:
