@@ -23,110 +23,46 @@ struct TransitionView: View {
     var body: some View {
         ZStack() {
             if (homeScreenState == .countdown) {
-                GeometryReader { geometry in
-                    VStack {
-                        Spacer()
-                        
-                        Text(String(countdownNumber))
-                            .font(.sfProTextRegular(size: 64))
-                            .fontWeight(.medium)
-                            .foregroundStyle(.white)
-                            .multilineTextAlignment(.center)
-                            .transition(.scale)
-                            .animation(.easeInOut(duration: 0.3), value: countdownNumber)
-
-                        Spacer()
-                    }
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                }
-                .edgesIgnoringSafeArea(.all)
+                CountdownOverlay(countdownNumber: countdownNumber)
             }
             
             VStack() {
-                if (homeScreenState == .surveyIsCompleted) {
-                    Spacer()
-                    
-                    Text("That's it!")
-                        .font(.sfProTextRegular(size: 30))
-                        .foregroundStyle(.white)
-                    Text("Thanks for your time.")
-                        .font(.sfProTextRegular(size: 30))
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Spacer()
-                    InterviewSummaryButtonView(onNext: onNext)
-                        .padding(.bottom, 30)
-                }
-                else if (homeScreenState == .preparing
-                    || homeScreenState == .introduction
-                    || homeScreenState == .countdown
-                    || homeScreenState == .playingQuestion
-                    || homeScreenState == .waitingForResponse) {
-                    Spacer()
-                    
-                    if (homeScreenState == .countdown) {
-                        Text("Start the interview in...")
-                            .font(.sfProTextRegular(size: 16))
-                            .foregroundStyle(.white)
-                        Spacer()
-                        Spacer()
-                        Spacer()
-                    }
-                    
-                    StaticMicView()
-                        .padding(.bottom, 30)
-                } else if (homeScreenState == .microphoneSetUp
-                            || homeScreenState == .obtainMicrophonePermission
-                            || homeScreenState == .askForGettingReady
-                            || homeScreenState == .userIsReady
-                            || homeScreenState == .waitForAnswer
-                            || homeScreenState == .answering) {
-                    Spacer()
-                    
-                    
-                    if ((homeScreenState == .askForGettingReady
-                         || homeScreenState == .userIsReady
-                         || homeScreenState == .answering)
-                        && isListening) {
-                        Spacer()
-                        Spacer()
-                        
-                        Text("I'm listening...")
-                            .font(.sfProTextRegular(size: 16))
-                            .foregroundStyle(.white)
-                        
-                        Spacer()
-                    }
-                    
-                    MicView(
-                        isListening: $isListening,
-                        onTap: onNext
+                switch homeScreenState {
+                case .surveyIsCompleted:
+                    SurveyCompletedView(onNext: onNext)
+                case .preparing, .introduction, .countdown, .playingQuestion, .waitingForResponse:
+                    NoMicphoneInteractionView(homeScreenState: homeScreenState)
+                case .microphoneSetUp, .obtainMicrophonePermission, .askForGettingReady, .userIsReady, .waitForAnswer, .answering:
+                    MicrophoneInteractionView(
+                        homeScreenState: homeScreenState,
+                        isListening: isListening,
+                        onNext: onNext
                     )
-                    .padding(.bottom, 30)
+                default:
+                    EmptyView()
                 }
             }
 
         }
-        .onAppear {
-            if (homeScreenState == .countdown) {
-                startCountdown()
-            } else if (homeScreenState == .playingQuestion) {
-                if let audioBase64String = audioBase64String {
-                    playAudioFromBase64(audioBase64String)
-                } else {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        onNext()
-                    }
-                }
-            } else if (homeScreenState == .loading
-                        || homeScreenState == .preparing
-                        || homeScreenState == .introduction) {
-                DispatchQueue.main.asyncAfter (
-                    deadline: .now() + 2.0
-                ) {
-                    onNext()
-                }
+        .onAppear(perform: handleOnAppear)
+    }
+    
+    private func handleOnAppear() {
+        switch homeScreenState {
+        case .countdown:
+            startCountdown()
+
+        case .playingQuestion:
+            if let audioBase64String = audioBase64String {
+                playAudioFromBase64(audioBase64String)
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: onNext)
             }
+
+        case .loading, .preparing, .introduction:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: onNext)
+
+        default: break
         }
     }
     
