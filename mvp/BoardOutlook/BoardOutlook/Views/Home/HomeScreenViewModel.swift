@@ -454,21 +454,6 @@ class HomeScreenViewModel {
         self.currentCenteredText = "Please grant microphone permission to begin."
     }
     
-    func advanceToMicrophonePermission() {
-        currentState = .obtainMicrophonePermission
-        currentCenteredText = "Please grant microphone permission to begin."
-    }
-    
-    func advanceToMicrophoneSetUp() {
-        currentState = .microphoneSetUp
-        currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
-    }
-    
-    func advanceToObtainMicrophonePermission() {
-        currentState = .obtainMicrophonePermission
-        currentCenteredText = "I am listening..."
-    }
-    
     func advanceToIntroduction() {
         currentState = .introduction
         currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."

@@ -31,7 +31,13 @@ struct TransitionView: View {
                     SurveyCompletedView(onNext: onNext)
                 case .preparing, .introduction, .countdown, .playingQuestion, .waitingForResponse:
                     NoMicphoneInteractionView(homeScreenState: homeScreenViewModel.currentState)
-                case .microphoneSetUp, .obtainMicrophonePermission, .askForGettingReady, .userIsReady, .waitForAnswer, .answering:
+                case .microphoneSetUp:
+                    MicrophoneInteractionView(
+                        homeScreenState: homeScreenViewModel.currentState,
+                        isListening: homeScreenViewModel.isListening,
+                        onNext: onButtonClick
+                    )
+                case .obtainMicrophonePermission, .askForGettingReady, .userIsReady, .waitForAnswer, .answering:
                     MicrophoneInteractionView(
                         homeScreenState: homeScreenViewModel.currentState,
                         isListening: homeScreenViewModel.isListening,
