@@ -17,6 +17,22 @@ class HomeScreenViewModel {
     var isListening: Bool = false
     var interviewProgress: InterviewProgress?
     var user: User = User(clientId: "client1", name: "Harshad")
+    var shouldShowToolbar: Bool {
+        switch currentState {
+        case .loading, .surveyIsCompleted:
+            return false
+        default:
+            return true
+        }
+    }
+    var shouldShowHeader: Bool {
+        switch currentState {
+        case .preparing, .microphoneSetUp, .obtainMicrophonePermission, .introduction, .askForGettingReady, .userIsReady:
+            return true
+        default:
+            return false
+        }
+    }
     
     private var webSocketTask: URLSessionWebSocketTask?
     
@@ -392,6 +408,102 @@ class HomeScreenViewModel {
             self.currentState = .askForGettingReady
             self.currentCenteredText = "Something went wrong. Let's try again."
         }
+    }
+    
+    func advanceToMicrophonePermission() {
+        currentState = .obtainMicrophonePermission
+        currentCenteredText = "Please grant microphone permission to begin."
+    }
+    
+    func advanceToPreparing() {
+        currentState = .preparing
+        currentCenteredText = "One moment..."
+    }
+    
+    func advanceToMicrophoneSetUp() {
+        currentState = .microphoneSetUp
+        currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
+    }
+    
+    func advanceToObtainMicrophonePermission() {
+        currentState = .obtainMicrophonePermission
+        currentCenteredText = "I am listening..."
+    }
+    
+    func advanceToIntroduction() {
+        currentState = .introduction
+        currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
+    }
+    
+    func advanceToAskForGettingReady() {
+        currentState = .askForGettingReady
+        currentCenteredText = "Are you ready to get started? Just say 'Yes' or anything like that and I will get right in"
+    }
+    
+    func advanceToUserIsReady() {
+        currentState = .userIsReady
+    }
+    
+    @MainActor
+    func advanceFromUserReady() async {
+        stopRecording()
+        
+        currentState = .countdown
+        currentCenteredText = ""
+        
+        await startInterview()
+    }
+    
+    @MainActor
+    func advanceFromCountdown() {
+        if let currentQuestion = interviewProgress?.currentQuestion {
+            currentState = .playingQuestion
+            currentCenteredText = currentQuestion
+        } else {
+            currentState = .waitingForResponse
+            currentCenteredText = "Loading..."
+        }
+    }
+    
+    @MainActor
+    func advanceFromPlayingQuestion() {
+        if interviewProgress?.isSurveyCompleted == true {
+            currentState = .surveyIsCompleted
+            currentCenteredText = "Your responses have been saved"
+        } else {
+            currentState = .waitForAnswer
+        }
+    }
+    
+    @MainActor
+    func beginAnswering() {
+        startRecording()
+        currentState = .answering
+    }
+    
+    @MainActor
+    func finishAnswering() {
+        stopRecording()
+        currentState = .waitingForResponse
+    }
+    
+    @MainActor
+    func advanceFromWaitingForResponse() {
+        guard let progress = interviewProgress else { return }
+
+        currentState = .playingQuestion
+        currentCenteredText = progress.currentQuestion
+    }
+    
+    @MainActor
+    func moveToInterviewSummaryScreen() {
+        guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow }) else { return }
+
+        window.rootViewController = UIHostingController(rootView: InterviewSummaryView())
+        window.makeKeyAndVisible()
     }
 }
 
