@@ -25,7 +25,11 @@ struct HomeScreenView : View {
                         )
                         
                         if (homeScreenViewModel.shouldShowHeader) {
-                            InterviewHeader()
+                            InterviewHeader(
+                                title: .constant(homeScreenViewModel.interviewMetadata?.title ?? ""),
+                                estimatedDuration: .constant(homeScreenViewModel.interviewMetadata?.estimatedDuration ?? 0),
+                                durationUnit: .constant(homeScreenViewModel.interviewMetadata?.durationUnit ?? "minute")
+                            )
                         } else {
                             Spacer()
                         }
@@ -46,24 +50,17 @@ struct HomeScreenView : View {
         switch homeScreenViewModel.currentState {
         case .loading:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
-                onNext: homeScreenViewModel.advanceToPreparing
+                homeScreenViewModel: $homeScreenViewModel,
+                onNext: {}
             )
         case .preparing:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
-                onNext: {
-                    // Initialize WebSocket connection
-                    homeScreenViewModel.establishWebSocketConnection()
-                    homeScreenViewModel.advanceToMicrophoneSetUp()
-                }
+                homeScreenViewModel: $homeScreenViewModel,
+                onNext: {}
             )
         case .microphoneSetUp:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: {
                     homeScreenViewModel.startRecording()
                     homeScreenViewModel.advanceToObtainMicrophonePermission()
@@ -71,8 +68,7 @@ struct HomeScreenView : View {
             )
         case .obtainMicrophonePermission:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: {
                     homeScreenViewModel.stopRecording()
                     homeScreenViewModel.advanceToIntroduction()
@@ -80,14 +76,12 @@ struct HomeScreenView : View {
             )
         case .introduction:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: homeScreenViewModel.advanceToAskForGettingReady
             )
         case .askForGettingReady:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: {
                     homeScreenViewModel.startRecording()
                     homeScreenViewModel.advanceToUserIsReady()
@@ -95,8 +89,7 @@ struct HomeScreenView : View {
             )
         case .userIsReady:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: {
                     Task {
                         await homeScreenViewModel.advanceFromUserReady()
@@ -105,39 +98,33 @@ struct HomeScreenView : View {
             )
         case .countdown:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: homeScreenViewModel.advanceFromCountdown
             )
         case .playingQuestion:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 audioBase64String: homeScreenViewModel.interviewProgress?.audioBase64,
                 onNext: homeScreenViewModel.advanceFromPlayingQuestion
             )
         case .waitForAnswer:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: homeScreenViewModel.beginAnswering
             )
         case .answering:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: homeScreenViewModel.finishAnswering
             )
         case .waitingForResponse:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: homeScreenViewModel.advanceFromWaitingForResponse
             )
         case .surveyIsCompleted:
             TransitionView(
-                homeScreenState: $homeScreenViewModel.currentState,
-                isListening: $homeScreenViewModel.isListening,
+                homeScreenViewModel: $homeScreenViewModel,
                 onNext: homeScreenViewModel.moveToInterviewSummaryScreen
             )
         }

@@ -13,8 +13,7 @@ struct TransitionView: View {
     @State private var audioPlayer: AVAudioPlayer?
     @State private var playerDelegate: AVPlayerDelegate?
     
-    @Binding var homeScreenState: HomeScreenViewState
-    @Binding var isListening: Bool
+    @Binding var homeScreenViewModel: HomeScreenViewModel
     
     var audioBase64String: String?
     
@@ -22,20 +21,20 @@ struct TransitionView: View {
     
     var body: some View {
         ZStack() {
-            if (homeScreenState == .countdown) {
+            if (homeScreenViewModel.currentState == .countdown) {
                 CountdownOverlay(countdownNumber: countdownNumber)
             }
             
             VStack() {
-                switch homeScreenState {
+                switch homeScreenViewModel.currentState {
                 case .surveyIsCompleted:
                     SurveyCompletedView(onNext: onNext)
                 case .preparing, .introduction, .countdown, .playingQuestion, .waitingForResponse:
-                    NoMicphoneInteractionView(homeScreenState: homeScreenState)
+                    NoMicphoneInteractionView(homeScreenState: homeScreenViewModel.currentState)
                 case .microphoneSetUp, .obtainMicrophonePermission, .askForGettingReady, .userIsReady, .waitForAnswer, .answering:
                     MicrophoneInteractionView(
-                        homeScreenState: homeScreenState,
-                        isListening: isListening,
+                        homeScreenState: homeScreenViewModel.currentState,
+                        isListening: homeScreenViewModel.isListening,
                         onNext: onNext
                     )
                 default:
@@ -48,7 +47,13 @@ struct TransitionView: View {
     }
     
     private func handleOnAppear() {
-        switch homeScreenState {
+        switch homeScreenViewModel.currentState {
+        case .loading:
+            Task {
+                await homeScreenViewModel.loadingInterview()
+            }
+        case .preparing:
+            homeScreenViewModel.prepareWebSocketConnection()
         case .countdown:
             startCountdown()
 
@@ -59,9 +64,17 @@ struct TransitionView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: onNext)
             }
 
-        case .loading, .preparing, .introduction:
+        case .introduction:
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: onNext)
 
+        default: break
+        }
+    }
+    
+    func onButtonClick() {
+        switch homeScreenViewModel.currentState {
+        case .microphoneSetUp:
+            homeScreenViewModel.startTestingMicrophone()
         default: break
         }
     }
@@ -116,12 +129,10 @@ class AVPlayerDelegate: NSObject, AVAudioPlayerDelegate {
 }
 
 #Preview {
-    @Previewable @State var homeScreenState: HomeScreenViewState = .surveyIsCompleted
-    @Previewable @State var isListening: Bool = false
+    @Previewable @State var homeScreenViewModel: HomeScreenViewModel = HomeScreenViewModel()
     
     TransitionView(
-        homeScreenState: $homeScreenState,
-        isListening: $isListening,
+        homeScreenViewModel: $homeScreenViewModel,
         onNext: {}
     )
 }

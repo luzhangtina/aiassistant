@@ -15,8 +15,11 @@ class HomeScreenViewModel {
     var currentCenteredText: String = "Let's get started..."
     var currentInterviewMode: InterviewMode = .voice
     var isListening: Bool = false
+    var interviewMetadata: InterviewMetadata?
     var interviewProgress: InterviewProgress?
     var user: User = User(clientId: "client1", name: "Harshad")
+    var laodingInterviewRequest = LoadingInterviewRequest(userId: "user1001", interviewId: "interview_001")
+    
     var shouldShowToolbar: Bool {
         switch currentState {
         case .loading, .surveyIsCompleted:
@@ -410,14 +413,50 @@ class HomeScreenViewModel {
         }
     }
     
+    func loadingInterview() async {
+        guard let url = URL(string: "http://localhost:8001/api/loadingInterview") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONEncoder().encode(laodingInterviewRequest)
+
+        let session = URLSession(configuration: .default)
+        
+        do {
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                print("Error: Invalid server response")
+                return
+            }
+            
+            let interviewMetadata = try JSONDecoder().decode(InterviewMetadata.self, from: data)
+
+            self.interviewMetadata = interviewMetadata
+            self.currentState = .preparing
+            self.currentCenteredText = "One moment..."
+        } catch {
+            print("Error: \(error.localizedDescription)")
+            self.currentCenteredText = "Something went wrong. Let's try again."
+        }
+    }
+    
+    func prepareWebSocketConnection() {
+        establishWebSocketConnection()
+        self.currentState = .microphoneSetUp
+        self.currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
+    }
+    
+    func startTestingMicrophone() {
+        startRecording()
+        self.currentState = .obtainMicrophonePermission
+        self.currentCenteredText = "Please grant microphone permission to begin."
+    }
+    
     func advanceToMicrophonePermission() {
         currentState = .obtainMicrophonePermission
         currentCenteredText = "Please grant microphone permission to begin."
-    }
-    
-    func advanceToPreparing() {
-        currentState = .preparing
-        currentCenteredText = "One moment..."
     }
     
     func advanceToMicrophoneSetUp() {

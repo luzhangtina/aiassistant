@@ -8,14 +8,18 @@
 import SwiftUI
 
 struct InterviewHeader: View {
+    @Binding var title: String
+    @Binding var estimatedDuration: Int
+    @Binding var durationUnit: String
+    
     var body: some View {
         VStack {
-            Text("Board Evaluation")
+            Text(title)
                 .font(.sfProTextRegular(size: 32))
                 .foregroundStyle(.white)
                 .padding(.top, 60)
 
-            Text("30 mins")
+            Text("\(estimatedDuration) \(durationUnit)s")
                 .font(.sfProTextRegular(size: 20))
                 .fontWeight(.bold)
                 .foregroundStyle(.white)
@@ -25,6 +29,14 @@ struct InterviewHeader: View {
 }
 
 #Preview {
-    InterviewHeader()
+    @Previewable @State var title: String = "Board Evaluation"
+    @Previewable @State var estimatedDuration: Int = 30
+    @Previewable @State var durationUnit: String = "minute"
+    
+    InterviewHeader(
+        title: $title,
+        estimatedDuration: $estimatedDuration,
+        durationUnit: $durationUnit
+    )
 }
 
