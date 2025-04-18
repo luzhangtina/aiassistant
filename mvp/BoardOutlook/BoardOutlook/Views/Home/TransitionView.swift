@@ -71,7 +71,7 @@ struct TransitionView: View {
             }
 
         case .introduction:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: onNext)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: homeScreenViewModel.advanceToAskForGettingReady)
 
         default: break
         }

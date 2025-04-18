@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AVFoundation
-import AVFAudio
 
 @Observable
 @MainActor
@@ -16,6 +15,7 @@ class HomeScreenViewModel {
     var currentCenteredText: String = "Let's get started..."
     var currentInterviewMode: InterviewMode = .voice
     var isListening: Bool = false
+    var microphoneIsReady: Bool = false
     var interviewMetadata: InterviewMetadata?
     var interviewProgress: InterviewProgress?
     var user: User = User(clientId: "client1", name: "Harshad")
@@ -207,6 +207,23 @@ class HomeScreenViewModel {
             inputNode?.installTap(onBus: 0, bufferSize: 1024, format: nativeFormat) { [weak self] buffer, time in
                 guard let self = self else { return }
                 
+                let channelData = buffer.floatChannelData?[0]
+                let frameLength = Int(buffer.frameLength)
+
+                if let channelData = channelData {
+                    let channelArray = Array(UnsafeBufferPointer(start: channelData, count: frameLength))
+                    let sumSquares = channelArray.reduce(0) { $0 + $1 * $1 }
+                    let meanSquare = sumSquares / Float(frameLength)
+                    let rms = sqrt(meanSquare)
+                    let level = 20 * log10(rms)
+
+                    DispatchQueue.main.async {
+                        if level > -60 {
+                            self.microphoneIsReady = true
+                        }
+                    }
+                }
+                
                 var pcmData: Data?
                 
                 if needsConversion, let converter = converter {
@@ -283,7 +300,10 @@ class HomeScreenViewModel {
 
     // Send audio chunk via WebSocket
     private func sendAudioChunk(_ pcmData: Data) {
-        // If this is the first chunk, we need to create and send a WAV header
+        if (currentState == .tryToObtainMicphonePermission || currentState == .testMicrophone) {
+            return;
+        }
+        
         var dataToSend = Data()
         var isFirstChunk = false
         if !sentFirstChunk {
@@ -346,6 +366,10 @@ class HomeScreenViewModel {
 
     // Send final message
     private func flushRemainingAudio() {
+        if (currentState == .tryToObtainMicphonePermission || currentState == .testMicrophone) {
+            return;
+        }
+        
         print("Sending final message...")
         
         let type = currentStateToType()
@@ -377,9 +401,7 @@ class HomeScreenViewModel {
 
     // Determine message type based on current state
     private func currentStateToType() -> String {
-        if (currentState == .tryToObtainMicphonePermission || currentState == .testMicrophone) {
-            return "MicrophoneTest"
-        } else if (currentState == .askForGettingReady || currentState == .userIsReady) {
+        if (currentState == .askForGettingReady || currentState == .userIsReady) {
             return "IsUserReady"
         }
         return "InterviewAnswer"
@@ -491,8 +513,13 @@ class HomeScreenViewModel {
     
     func stopTestingMicrophone() {
         stopRecording()
-        self.currentState = .introduction
-        self.currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
+        if (microphoneIsReady) {
+            self.currentState = .introduction
+            self.currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
+        } else {
+            self.currentState = .tryToObtainMicphonePermission
+            self.currentCenteredText = "Microphone is not working, please check your microphone and say something by tapping the mic below for testing again..."
+        }
     }
     
     func advanceToAskForGettingReady() {

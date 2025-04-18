@@ -71,7 +71,7 @@ struct HomeScreenView : View {
         case .introduction:
             TransitionView(
                 homeScreenViewModel: $homeScreenViewModel,
-                onNext: homeScreenViewModel.advanceToAskForGettingReady
+                onNext: {}
             )
         case .askForGettingReady:
             TransitionView(
