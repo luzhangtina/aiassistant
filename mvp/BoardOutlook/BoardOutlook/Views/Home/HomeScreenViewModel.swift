@@ -16,6 +16,7 @@ class HomeScreenViewModel {
     var currentInterviewMode: InterviewMode = .voice
     var isListening: Bool = false
     var microphoneIsReady: Bool = false
+    var userIsReady: Bool = false
     var interviewMetadata: InterviewMetadata?
     var interviewProgress: InterviewProgress?
     var user: User = User(clientId: "client1", name: "Harshad")
@@ -31,7 +32,7 @@ class HomeScreenViewModel {
     }
     var shouldShowHeader: Bool {
         switch currentState {
-        case .preparing, .tryToObtainMicphonePermission, .testMicrophone, .askForGettingReady, .userIsReady:
+        case .preparing, .tryToObtainMicphonePermission, .testMicrophone, .checkIfUserIsReady, .waitingForUserToConfirmReady:
             return true
         default:
             return false
@@ -401,7 +402,7 @@ class HomeScreenViewModel {
 
     // Determine message type based on current state
     private func currentStateToType() -> String {
-        if (currentState == .askForGettingReady || currentState == .userIsReady) {
+        if (currentState == .checkIfUserIsReady || currentState == .waitingForUserToConfirmReady) {
             return "IsUserReady"
         }
         return "InterviewAnswer"
@@ -435,7 +436,7 @@ class HomeScreenViewModel {
             }
         } catch {
             print("Error: \(error.localizedDescription)")
-            self.currentState = .askForGettingReady
+            self.currentState = .checkIfUserIsReady
             self.currentCenteredText = "Something went wrong. Let's try again."
         }
     }
@@ -514,7 +515,7 @@ class HomeScreenViewModel {
     func stopTestingMicrophone() {
         stopRecording()
         if (microphoneIsReady) {
-            self.currentState = .askForGettingReady
+            self.currentState = .checkIfUserIsReady
             self.currentCenteredText = "Great, looks like we are all set. Are you ready to get started? Just say 'Yes' and I will get right in"
         } else {
             self.currentState = .tryToObtainMicphonePermission
@@ -522,18 +523,22 @@ class HomeScreenViewModel {
         }
     }
     
-    func advanceToUserIsReady() {
-        currentState = .userIsReady
+    func checkIfUserIsReady() {
+        startRecording()
+        self.currentState = .waitingForUserToConfirmReady
     }
     
-    @MainActor
-    func advanceFromUserReady() async {
+    func processUserConfirmation() async {
         stopRecording()
-        
-        currentState = .countdown
-        currentCenteredText = ""
-        
-        await startInterview()
+        if (userIsReady) {
+            self.currentState = .countdown
+            self.currentCenteredText = ""
+            
+            await startInterview()
+        } else {
+            self.currentState = .checkIfUserIsReady
+            self.currentCenteredText = "Looks like you are not ready. No worreis, just say 'Yes' when you are ready and I will get right in"
+        }
     }
     
     @MainActor

@@ -68,22 +68,15 @@ struct HomeScreenView : View {
                 homeScreenViewModel: $homeScreenViewModel,
                 onNext: {}
             )
-        case .askForGettingReady:
+        case .checkIfUserIsReady:
             TransitionView(
                 homeScreenViewModel: $homeScreenViewModel,
-                onNext: {
-                    homeScreenViewModel.startRecording()
-                    homeScreenViewModel.advanceToUserIsReady()
-                }
+                onNext: {}
             )
-        case .userIsReady:
+        case .waitingForUserToConfirmReady:
             TransitionView(
                 homeScreenViewModel: $homeScreenViewModel,
-                onNext: {
-                    Task {
-                        await homeScreenViewModel.advanceFromUserReady()
-                    }
-                }
+                onNext: {}
             )
         case .countdown:
             TransitionView(

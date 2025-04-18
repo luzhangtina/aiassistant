@@ -31,13 +31,13 @@ struct TransitionView: View {
                     SurveyCompletedView(onNext: onNext)
                 case .preparing, .countdown, .playingQuestion, .waitingForResponse:
                     NoMicphoneInteractionView(homeScreenState: $homeScreenViewModel.currentState)
-                case .tryToObtainMicphonePermission, .testMicrophone:
+                case .tryToObtainMicphonePermission, .testMicrophone, .checkIfUserIsReady, .waitingForUserToConfirmReady:
                     MicrophoneInteractionView(
                         homeScreenState: $homeScreenViewModel.currentState,
                         isListening: $homeScreenViewModel.isListening,
                         onNext: onButtonClick
                     )
-                case .askForGettingReady, .userIsReady, .waitForAnswer, .answering:
+                case .waitForAnswer, .answering:
                     MicrophoneInteractionView(
                         homeScreenState: $homeScreenViewModel.currentState,
                         isListening: $homeScreenViewModel.isListening,
@@ -80,6 +80,12 @@ struct TransitionView: View {
             homeScreenViewModel.startTestingMicrophone()
         case .testMicrophone:
             homeScreenViewModel.stopTestingMicrophone()
+        case .checkIfUserIsReady:
+            homeScreenViewModel.checkIfUserIsReady()
+        case .waitingForUserToConfirmReady:
+            Task {
+                await homeScreenViewModel.processUserConfirmation()
+            }
         default: break
         }
     }

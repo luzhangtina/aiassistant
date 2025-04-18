@@ -1,6 +1,6 @@
 # web_socket.py
 from fastapi import WebSocket, WebSocketDisconnect
-from services.interview_service import process_user_answer
+from services.interview_service import process_user_answer, is_user_ready
 
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -14,7 +14,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             print(f'CurrentMessageTypeIs: {type}')
             if type == 'IsUserReady':
-                print(f'IsUserReady')
+                await is_user_ready(data, client_id, websocket)
             else:
                 await process_user_answer(data, client_id, name, websocket)
 

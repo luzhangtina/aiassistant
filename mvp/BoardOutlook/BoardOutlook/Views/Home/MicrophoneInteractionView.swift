@@ -15,8 +15,7 @@ struct MicrophoneInteractionView: View {
 
     var body: some View {
         Spacer()
-        if (homeScreenState == .askForGettingReady ||
-            homeScreenState == .userIsReady ||
+        if (homeScreenState == .waitingForUserToConfirmReady ||
             homeScreenState == .answering) && isListening {
             Spacer()
             Spacer()
