@@ -13,9 +13,7 @@ async def websocket_endpoint(websocket: WebSocket):
             type = data['type']
 
             print(f'CurrentMessageTypeIs: {type}')
-            if type == 'MicrophoneTest':
-                print(f'MicrophoneTest')
-            elif type == 'IsUserReady':
+            if type == 'IsUserReady':
                 print(f'IsUserReady')
             else:
                 await process_user_answer(data, client_id, name, websocket)
