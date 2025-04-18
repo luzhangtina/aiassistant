@@ -58,18 +58,15 @@ struct HomeScreenView : View {
                 homeScreenViewModel: $homeScreenViewModel,
                 onNext: {}
             )
-        case .microphoneSetUp:
+        case .tryToObtainMicphonePermission:
             TransitionView(
                 homeScreenViewModel: $homeScreenViewModel,
                 onNext: {}
             )
-        case .obtainMicrophonePermission:
+        case .testMicrophone:
             TransitionView(
                 homeScreenViewModel: $homeScreenViewModel,
-                onNext: {
-                    homeScreenViewModel.stopRecording()
-                    homeScreenViewModel.advanceToIntroduction()
-                }
+                onNext: {}
             )
         case .introduction:
             TransitionView(

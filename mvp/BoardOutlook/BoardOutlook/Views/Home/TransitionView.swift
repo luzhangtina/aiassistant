@@ -30,17 +30,17 @@ struct TransitionView: View {
                 case .surveyIsCompleted:
                     SurveyCompletedView(onNext: onNext)
                 case .preparing, .introduction, .countdown, .playingQuestion, .waitingForResponse:
-                    NoMicphoneInteractionView(homeScreenState: homeScreenViewModel.currentState)
-                case .microphoneSetUp:
+                    NoMicphoneInteractionView(homeScreenState: $homeScreenViewModel.currentState)
+                case .tryToObtainMicphonePermission, .testMicrophone:
                     MicrophoneInteractionView(
-                        homeScreenState: homeScreenViewModel.currentState,
-                        isListening: homeScreenViewModel.isListening,
+                        homeScreenState: $homeScreenViewModel.currentState,
+                        isListening: $homeScreenViewModel.isListening,
                         onNext: onButtonClick
                     )
-                case .obtainMicrophonePermission, .askForGettingReady, .userIsReady, .waitForAnswer, .answering:
+                case .askForGettingReady, .userIsReady, .waitForAnswer, .answering:
                     MicrophoneInteractionView(
-                        homeScreenState: homeScreenViewModel.currentState,
-                        isListening: homeScreenViewModel.isListening,
+                        homeScreenState: $homeScreenViewModel.currentState,
+                        isListening: $homeScreenViewModel.isListening,
                         onNext: onNext
                     )
                 default:
@@ -79,8 +79,10 @@ struct TransitionView: View {
     
     func onButtonClick() {
         switch homeScreenViewModel.currentState {
-        case .microphoneSetUp:
+        case .tryToObtainMicphonePermission:
             homeScreenViewModel.startTestingMicrophone()
+        case .testMicrophone:
+            homeScreenViewModel.stopTestingMicrophone()
         default: break
         }
     }

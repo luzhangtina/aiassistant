@@ -9,8 +9,8 @@ import SwiftUI
 
 
 struct MicrophoneInteractionView: View {
-    var homeScreenState: HomeScreenViewState
-    var isListening: Bool
+    @Binding var homeScreenState: HomeScreenViewState
+    @Binding var isListening: Bool
     var onNext: () -> Void
 
     var body: some View {
@@ -25,15 +25,24 @@ struct MicrophoneInteractionView: View {
                 .foregroundStyle(.white)
             Spacer()
         }
-
-        MicView(
-            isListening: .constant(isListening),
-            onTap: onNext
-        )
+        
+        ZStack {
+            if (!isListening) {
+                StaticMicView()
+            } else {
+                GlowingBallView()
+            }
+        }
+        .onTapGesture {
+            onNext()
+        }
         .padding(.bottom, 30)
     }
 }
 
 #Preview {
-    MicrophoneInteractionView(homeScreenState: .answering, isListening: true, onNext: {})
+    @Previewable @State var homeScreenState: HomeScreenViewState = .answering
+    @Previewable @State var isListening: Bool = true
+    
+    MicrophoneInteractionView(homeScreenState: $homeScreenState, isListening: $isListening, onNext: {})
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct NoMicphoneInteractionView: View {
-    var homeScreenState: HomeScreenViewState
+    @Binding var homeScreenState: HomeScreenViewState
 
     var body: some View {
         Spacer()
@@ -25,5 +25,6 @@ struct NoMicphoneInteractionView: View {
 }
 
 #Preview {
-    NoMicphoneInteractionView(homeScreenState: .countdown)
+    @Previewable @State var homeScreenState: HomeScreenViewState = .countdown
+    NoMicphoneInteractionView(homeScreenState: $homeScreenState)
 }

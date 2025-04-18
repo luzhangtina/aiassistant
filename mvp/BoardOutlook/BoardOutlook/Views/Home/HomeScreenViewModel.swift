@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import AVFAudio
 
 @Observable
 @MainActor
@@ -30,7 +31,7 @@ class HomeScreenViewModel {
     }
     var shouldShowHeader: Bool {
         switch currentState {
-        case .preparing, .microphoneSetUp, .obtainMicrophonePermission, .introduction, .askForGettingReady, .userIsReady:
+        case .preparing, .tryToObtainMicphonePermission, .testMicrophone, .introduction, .askForGettingReady, .userIsReady:
             return true
         default:
             return false
@@ -110,6 +111,8 @@ class HomeScreenViewModel {
     }
 
     func startRecording() {
+        isListening = true
+        
         let audioSession = AVAudioSession.sharedInstance()
         audioEngine = AVAudioEngine()
         
@@ -337,6 +340,8 @@ class HomeScreenViewModel {
         
         // Send final message
         flushRemainingAudio()
+        
+        isListening = false
     }
 
     // Send final message
@@ -372,7 +377,7 @@ class HomeScreenViewModel {
 
     // Determine message type based on current state
     private func currentStateToType() -> String {
-        if (currentState == .microphoneSetUp || currentState == .obtainMicrophonePermission) {
+        if (currentState == .tryToObtainMicphonePermission || currentState == .testMicrophone) {
             return "MicrophoneTest"
         } else if (currentState == .askForGettingReady || currentState == .userIsReady) {
             return "IsUserReady"
@@ -444,19 +449,50 @@ class HomeScreenViewModel {
     
     func prepareWebSocketConnection() {
         establishWebSocketConnection()
-        self.currentState = .microphoneSetUp
+        self.currentState = .tryToObtainMicphonePermission
         self.currentCenteredText = "First, connect your headphones and say something by tapping the mic below for testing..."
     }
     
-    func startTestingMicrophone() {
-        startRecording()
-        self.currentState = .obtainMicrophonePermission
-        self.currentCenteredText = "Please grant microphone permission to begin."
+    func retryTestingMicrophone() {
+        print("retryTestingMicrophone")
+        self.currentState = .tryToObtainMicphonePermission
+        self.currentCenteredText = "Please enable microphone access in Settings and say something by tapping the mic below for testing..."
     }
     
-    func advanceToIntroduction() {
-        currentState = .introduction
-        currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
+    func startTestingMicrophone() {
+        let permissionStatus = AVAudioApplication.shared.recordPermission
+
+        switch permissionStatus {
+        case .granted:
+            startRecordingToTestMicrophone()
+        case .denied:
+            retryTestingMicrophone()
+        case .undetermined:
+            print("undetermined")
+            AVAudioApplication.requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        self.startRecordingToTestMicrophone()
+                    } else {
+                        self.retryTestingMicrophone()
+                    }
+                }
+            }
+        @unknown default:
+            retryTestingMicrophone()
+        }
+    }
+    
+    func startRecordingToTestMicrophone() {
+        startRecording()
+        self.currentState = .testMicrophone
+        self.currentCenteredText = "Please tap the mic below to stop testing."
+    }
+    
+    func stopTestingMicrophone() {
+        stopRecording()
+        self.currentState = .introduction
+        self.currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
     }
     
     func advanceToAskForGettingReady() {
