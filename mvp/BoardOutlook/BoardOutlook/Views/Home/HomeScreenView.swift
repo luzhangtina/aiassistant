@@ -68,11 +68,6 @@ struct HomeScreenView : View {
                 homeScreenViewModel: $homeScreenViewModel,
                 onNext: {}
             )
-        case .introduction:
-            TransitionView(
-                homeScreenViewModel: $homeScreenViewModel,
-                onNext: {}
-            )
         case .askForGettingReady:
             TransitionView(
                 homeScreenViewModel: $homeScreenViewModel,

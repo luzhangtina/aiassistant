@@ -25,9 +25,7 @@ struct HomeScreenBackgroundView: View {
             if (homeScreenState == .surveyIsCompleted) {
                 EmptyView()
             }
-            else if (homeScreenState == .introduction
-                || homeScreenState == .askForGettingReady
-                || homeScreenState == .playingQuestion) {
+            else if (homeScreenState == .playingQuestion) {
                 AudioEclipseView()
             } else {
                 LightMovingEclipseView()
@@ -37,7 +35,7 @@ struct HomeScreenBackgroundView: View {
 }
 
 #Preview {
-    @Previewable @State var homeScreenState: HomeScreenViewState = .introduction
+    @Previewable @State var homeScreenState: HomeScreenViewState = .playingQuestion
     
     HomeScreenBackgroundView(
         homeScreenState: $homeScreenState

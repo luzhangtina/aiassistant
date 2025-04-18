@@ -31,7 +31,7 @@ class HomeScreenViewModel {
     }
     var shouldShowHeader: Bool {
         switch currentState {
-        case .preparing, .tryToObtainMicphonePermission, .testMicrophone, .introduction, .askForGettingReady, .userIsReady:
+        case .preparing, .tryToObtainMicphonePermission, .testMicrophone, .askForGettingReady, .userIsReady:
             return true
         default:
             return false
@@ -514,17 +514,12 @@ class HomeScreenViewModel {
     func stopTestingMicrophone() {
         stopRecording()
         if (microphoneIsReady) {
-            self.currentState = .introduction
-            self.currentCenteredText = "Great, looks like we are all set. Before we start, let me share a few things about me..."
+            self.currentState = .askForGettingReady
+            self.currentCenteredText = "Great, looks like we are all set. Are you ready to get started? Just say 'Yes' and I will get right in"
         } else {
             self.currentState = .tryToObtainMicphonePermission
             self.currentCenteredText = "Microphone is not working, please check your microphone and say something by tapping the mic below for testing again..."
         }
-    }
-    
-    func advanceToAskForGettingReady() {
-        currentState = .askForGettingReady
-        currentCenteredText = "Are you ready to get started? Just say 'Yes' or anything like that and I will get right in"
     }
     
     func advanceToUserIsReady() {

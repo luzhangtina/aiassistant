@@ -29,7 +29,7 @@ struct TransitionView: View {
                 switch homeScreenViewModel.currentState {
                 case .surveyIsCompleted:
                     SurveyCompletedView(onNext: onNext)
-                case .preparing, .introduction, .countdown, .playingQuestion, .waitingForResponse:
+                case .preparing, .countdown, .playingQuestion, .waitingForResponse:
                     NoMicphoneInteractionView(homeScreenState: $homeScreenViewModel.currentState)
                 case .tryToObtainMicphonePermission, .testMicrophone:
                     MicrophoneInteractionView(
@@ -69,9 +69,6 @@ struct TransitionView: View {
             } else {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: onNext)
             }
-
-        case .introduction:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0, execute: homeScreenViewModel.advanceToAskForGettingReady)
 
         default: break
         }

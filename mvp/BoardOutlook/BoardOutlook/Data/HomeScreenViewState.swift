@@ -10,7 +10,6 @@ enum HomeScreenViewState {
     case preparing
     case tryToObtainMicphonePermission
     case testMicrophone
-    case introduction
     case askForGettingReady
     case userIsReady
     case countdown
