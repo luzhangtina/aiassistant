@@ -61,7 +61,21 @@ struct TransitionView: View {
         case .preparing:
             homeScreenViewModel.prepareWebSocketConnection()
         case .countdown:
-            startCountdown()
+            Task {
+                countdownNumber = 5
+                Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
+                    if countdownNumber > 1 {
+                        countdownNumber -= 1
+                    } else {
+                        timer.invalidate()
+                        Task { @MainActor in
+                            homeScreenViewModel.advanceFromCountdown()
+                        }
+                    }
+                }
+                
+                await homeScreenViewModel.startInterview()
+            }
 
         case .playingQuestion:
             if let audioBase64String = audioBase64String {
@@ -83,22 +97,8 @@ struct TransitionView: View {
         case .checkIfUserIsReady:
             homeScreenViewModel.checkIfUserIsReady()
         case .waitingForUserToConfirmReady:
-            Task {
-                await homeScreenViewModel.processUserConfirmation()
-            }
+            homeScreenViewModel.stopRecording()
         default: break
-        }
-    }
-    
-    func startCountdown() {
-        countdownNumber = 5
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
-            if countdownNumber > 1 {
-                countdownNumber -= 1
-            } else {
-                timer.invalidate()
-                onNext()
-            }
         }
     }
     

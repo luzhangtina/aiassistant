@@ -16,12 +16,12 @@ class HomeScreenViewModel {
     var currentInterviewMode: InterviewMode = .voice
     var isListening: Bool = false
     var microphoneIsReady: Bool = false
-    var userIsReady: Bool = false
     var interviewMetadata: InterviewMetadata?
     var interviewProgress: InterviewProgress?
+    var userId: String = "user1001"
+    var interviewId: String = "interview_001"
     var user: User = User(clientId: "client1", name: "Harshad")
-    var laodingInterviewRequest = LoadingInterviewRequest(userId: "user1001", interviewId: "interview_001")
-    
+        
     var shouldShowToolbar: Bool {
         switch currentState {
         case .loading, .surveyIsCompleted:
@@ -91,21 +91,44 @@ class HomeScreenViewModel {
         }
     }
         
-    // Handle messages received from the server
+    func processUserIsReadyConfirmation(_ payload: (IsUserReadyResponse)) {
+        if (payload.isUserReady) {
+            self.currentState = .countdown
+            self.currentCenteredText = ""
+        } else {
+            self.currentState = .checkIfUserIsReady
+            self.currentCenteredText = "Looks like you are not ready. No worreis, just say 'Yes' when you are ready and I will get right in"
+        }
+    }
+    
     private func handleServerMessage(_ message: String) {
-        // Parse the message (adjust based on your server's response format)
+        guard let jsonData = message.data(using: .utf8) else { return }
+        
         do {
             let decoder = JSONDecoder()
-            let response = try decoder.decode(InterviewProgress.self, from: Data(message.utf8))
-            print(response)
-            self.interviewProgress = response
-            
-            // If we're waiting for a response, proceed to playing the question
-            if self.currentState == .waitingForResponse {
-                let currentQuestion = response.currentQuestion
-                self.currentState = .playingQuestion
-                self.currentCenteredText = currentQuestion
+            let message = try decoder.decode(WebSocketMessage.self, from: jsonData)
+
+            switch message.messageType {
+            case .isUserReadyResponse:
+                switch message.data {
+                case .isUserReadyResponse(let payload):
+                    processUserIsReadyConfirmation(payload)
+                default:
+                    break
+                }
+            default:
+                break
             }
+//            let response = try decoder.decode(InterviewProgress.self, from: Data(message.utf8))
+//            print(response)
+//            self.interviewProgress = response
+//            
+//            // If we're waiting for a response, proceed to playing the question
+//            if self.currentState == .waitingForResponse {
+//                let currentQuestion = response.currentQuestion
+//                self.currentState = .playingQuestion
+//                self.currentCenteredText = currentQuestion
+//            }
         } catch {
             print("Failed to decode server message: \(error)")
         }
@@ -323,18 +346,22 @@ class HomeScreenViewModel {
         let type = currentStateToType()
         
         // Create message
-        let userAnswer = UserAnswer(
-            clientId: user.clientId,
-            name: user.name,
-            type: type,
+        let answer = UserInterviewAnswer(
+            userId: userId,
+            interviewId: interviewId,
             audioBase64: base64String,
-            isFirstChunk: isFirstChunk,
-            isLastChunk: false
+            isFirstAudioChunk: isFirstChunk,
+            isLastAudioChunk: false
+        )
+
+        let message = WebSocketMessage(
+            messageType: type,
+            data: .userInterviewAnswer(answer)
         )
         
         // Send via WebSocket
         do {
-            let jsonData = try JSONEncoder().encode(userAnswer)
+            let jsonData = try JSONEncoder().encode(message)
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 webSocketTask?.send(.string(jsonString)) { error in
                     if let error = error {
@@ -375,17 +402,21 @@ class HomeScreenViewModel {
         
         let type = currentStateToType()
         
-        let userAnswer = UserAnswer(
-            clientId: user.clientId,
-            name: user.name,
-            type: type,
+        let answer = UserInterviewAnswer(
+            userId: userId,
+            interviewId: interviewId,
             audioBase64: nil,
-            isFirstChunk: false,
-            isLastChunk: true
+            isFirstAudioChunk: false,
+            isLastAudioChunk: true
+        )
+
+        let message = WebSocketMessage(
+            messageType: type,
+            data: .userInterviewAnswer(answer)
         )
         
         do {
-            let jsonData = try JSONEncoder().encode(userAnswer)
+            let jsonData = try JSONEncoder().encode(message)
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 webSocketTask?.send(.string(jsonString)) { error in
                     if let error = error {
@@ -401,11 +432,11 @@ class HomeScreenViewModel {
     }
 
     // Determine message type based on current state
-    private func currentStateToType() -> String {
+    private func currentStateToType() -> WebSocketMessageType {
         if (currentState == .checkIfUserIsReady || currentState == .waitingForUserToConfirmReady) {
-            return "IsUserReady"
+            return .isUserReadyRequest
         }
-        return "InterviewAnswer"
+        return .userInterviewAnswer
     }
     
     func startInterview() async {
@@ -447,7 +478,9 @@ class HomeScreenViewModel {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONEncoder().encode(laodingInterviewRequest)
+        
+        let loadingInterviewRequest = LoadingInterviewRequest(userId: userId, interviewId: interviewId)
+        request.httpBody = try? JSONEncoder().encode(loadingInterviewRequest)
 
         let session = URLSession(configuration: .default)
         
@@ -528,20 +561,6 @@ class HomeScreenViewModel {
         self.currentState = .waitingForUserToConfirmReady
     }
     
-    func processUserConfirmation() async {
-        stopRecording()
-        if (userIsReady) {
-            self.currentState = .countdown
-            self.currentCenteredText = ""
-            
-            await startInterview()
-        } else {
-            self.currentState = .checkIfUserIsReady
-            self.currentCenteredText = "Looks like you are not ready. No worreis, just say 'Yes' when you are ready and I will get right in"
-        }
-    }
-    
-    @MainActor
     func advanceFromCountdown() {
         if let currentQuestion = interviewProgress?.currentQuestion {
             currentState = .playingQuestion

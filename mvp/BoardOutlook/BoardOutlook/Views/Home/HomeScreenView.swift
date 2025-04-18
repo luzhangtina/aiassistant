@@ -81,7 +81,7 @@ struct HomeScreenView : View {
         case .countdown:
             TransitionView(
                 homeScreenViewModel: $homeScreenViewModel,
-                onNext: homeScreenViewModel.advanceFromCountdown
+                onNext: {}
             )
         case .playingQuestion:
             TransitionView(

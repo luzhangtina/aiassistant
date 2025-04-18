@@ -6,9 +6,8 @@
 //
 
 struct UserAnswer: Codable {
-    var clientId: String
-    var name: String
-    var type: String
+    var messageType: String
+    var userId: String
     var audioBase64: String?
     var isFirstChunk: Bool
     var isLastChunk: Bool

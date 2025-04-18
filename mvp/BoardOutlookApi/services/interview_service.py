@@ -10,26 +10,30 @@ from services.ai_service import (
 )
 from services.prompt_service import create_system_prompt
 from services.tts_service import get_audio_from_edge
+from models.web_socket_message import UserInterviewAnswer, IsUserReadyResponse, WebSocketMessage, WebSocketMessageType
 
 
-async def process_user_answer(data: Dict, client_id: str, name: str, websocket: WebSocket):
-    user_audio_data_base64 = data.get('audioBase64')
-    
+async def process_user_answer(data: Dict, user_message: UserInterviewAnswer, websocket: WebSocket):
+    user_audio_data_base64 = user_message.audio_base64
+    user_id = user_message.user_id
+    is_first_audio_chunk = user_message.is_first_audio_chunk
+    is_last_audio_chunk = user_message.is_last_audio_chunk
+
     if user_audio_data_base64:
         try:
-            if data.get("isFirstChunk", True):
-                print(f"Received first chunk from {client_id}, resetting recognizer")
-                recognizer_manager.reset_recognizer(client_id)
-            recognizer_manager.process_audio(user_audio_data_base64, client_id)
+            if is_first_audio_chunk:
+                print(f"Received first chunk from {user_id}, resetting recognizer")
+                recognizer_manager.reset_recognizer(user_id)
+            recognizer_manager.process_audio(user_audio_data_base64, user_id)
         except Exception as e:
             print(f"Error processing audio: {e}")
 
-    if data.get('isLastChunk', True):
+    if is_last_audio_chunk:
         try:
-            final_transcript = recognizer_manager.get_complete_transcript(client_id)
+            final_transcript = recognizer_manager.get_complete_transcript(user_id)
             print(f"final_transcript: {final_transcript}")
 
-            user_context = client_context_store.get_context(client_id)
+            user_context = client_context_store.get_context(user_id)
             context = user_context['context']
             number_of_question_in_progress = context['number_of_current_question']
             total_number = context['number_of_total_questions']
@@ -61,7 +65,7 @@ async def process_user_answer(data: Dict, client_id: str, name: str, websocket: 
                 current_survey_data = get_survey_data(context['survey_data'], 1)
 
                 system_prompt = create_system_prompt(
-                    init=False, summary=False, client_name=name,
+                    init=False, summary=False, client_name="harshad",
                     question_text=new_question, description=current_survey_data['description'],
                     chat_history=[], magic_ending_word=magic_word
                 )
@@ -125,12 +129,15 @@ async def process_user_answer(data: Dict, client_id: str, name: str, websocket: 
         except Exception as e:
             print("Error processing audio:", e)
 
-async def is_user_ready(data: Dict, user_id: str, websocket: WebSocket):
-    user_audio_data_base64 = data.get('audioBase64')
+async def is_user_ready(data: Dict, user_message: UserInterviewAnswer, websocket: WebSocket):
+    user_audio_data_base64 = user_message.audio_base64
+    user_id = user_message.user_id
+    is_first_audio_chunk = user_message.is_first_audio_chunk
+    is_last_audio_chunk = user_message.is_last_audio_chunk
     
     if user_audio_data_base64:
         try:
-            if data.get("isFirstChunk", True):
+            if is_first_audio_chunk:
                 print(f"Received first chunk from {user_id}, resetting recognizer")
                 recognizer_manager.reset_recognizer(user_id)
             recognizer_manager.process_audio(user_audio_data_base64, user_id)
@@ -138,10 +145,10 @@ async def is_user_ready(data: Dict, user_id: str, websocket: WebSocket):
             print(f"Error processing audio: {e}")
             await send_user_ready_result(websocket, user_id, False, "Error processing audio:")
 
-    if data.get('isLastChunk', True):
+    if is_last_audio_chunk:
         try:
             final_transcript = recognizer_manager.get_complete_transcript(user_id)
-            print(f"final_transcript: {final_transcript}")
+            print(f"Receive last chunk from {user_id}, final_transcript: {final_transcript}")
 
             ready_phrases = ["ready", "begin", "go", "yes"]
     
@@ -154,10 +161,14 @@ async def is_user_ready(data: Dict, user_id: str, websocket: WebSocket):
             print("Error processing audio:", e)
             await send_user_ready_result(websocket, user_id, False, "Error processing audio:")
 
-async def send_user_ready_result(websocket: WebSocket, user_id: str, is_user_ready: bool, final_transcript: str):
-    result = {
-        "user_id": user_id,
-        "is_user_ready": is_user_ready,
-        "final_transcript": final_transcript
-    }
-    await websocket.send_json(result)
+async def send_user_ready_result(websocket: WebSocket, user_id: str, is_user_ready: bool, transcript: str):
+    server_message = WebSocketMessage(
+        message_type=WebSocketMessageType.IS_USER_READY_RESPONSE,
+        data=IsUserReadyResponse(
+            user_id=user_id,
+            is_user_ready=is_user_ready,
+            transcript=transcript
+        ))
+
+    # Send the response back to the client
+    await websocket.send_json(server_message.model_dump(by_alias=True))
